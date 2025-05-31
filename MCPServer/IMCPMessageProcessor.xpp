@@ -1,0 +1,100 @@
+/// <summary>
+/// Interface for processing MCP protocol messages.
+/// Handles message routing, validation, and response generation.
+/// </summary>
+interface IMCPMessageProcessor
+{
+    /// <summary>
+    /// Processes an incoming MCP message.
+    /// </summary>
+    /// <param name="_connection">The client connection</param>
+    /// <param name="_message">The incoming message</param>
+    /// <returns>The response message or empty string if no response needed</returns>
+    str processMessage(IMCPClientConnection _connection, str _message);
+
+    /// <summary>
+    /// Validates a message format and structure.
+    /// </summary>
+    /// <param name="_message">The message to validate</param>
+    /// <returns>True if message is valid</returns>
+    boolean validateMessage(str _message);
+
+    /// <summary>
+    /// Parses a JSON-RPC request from the message.
+    /// </summary>
+    /// <param name="_message">The message to parse</param>
+    /// <returns>The parsed request object</returns>
+    MCPJsonRpcRequest parseRequest(str _message);
+
+    /// <summary>
+    /// Creates a JSON-RPC response message.
+    /// </summary>
+    /// <param name="_request">The original request</param>
+    /// <param name="_result">The result data</param>
+    /// <param name="_error">Error information if any</param>
+    /// <returns>The response message</returns>
+    str createResponse(MCPJsonRpcRequest _request, str _result = "", MCPException _error = null);
+
+    /// <summary>
+    /// Handles an initialize request.
+    /// </summary>
+    /// <param name="_connection">The client connection</param>
+    /// <param name="_request">The initialize request</param>
+    /// <returns>The initialize response</returns>
+    str handleInitialize(IMCPClientConnection _connection, MCPJsonRpcRequest _request);
+
+    /// <summary>
+    /// Handles a tools/list request.
+    /// </summary>
+    /// <param name="_connection">The client connection</param>
+    /// <param name="_request">The tools/list request</param>
+    /// <returns>The tools list response</returns>
+    str handleToolsList(IMCPClientConnection _connection, MCPJsonRpcRequest _request);
+
+    /// <summary>
+    /// Handles a tools/call request.
+    /// </summary>
+    /// <param name="_connection">The client connection</param>
+    /// <param name="_request">The tools/call request</param>
+    /// <returns>The tool execution response</returns>
+    str handleToolsCall(IMCPClientConnection _connection, MCPJsonRpcRequest _request);
+
+    /// <summary>
+    /// Handles a ping request.
+    /// </summary>
+    /// <param name="_connection">The client connection</param>
+    /// <param name="_request">The ping request</param>
+    /// <returns>The ping response</returns>
+    str handlePing(IMCPClientConnection _connection, MCPJsonRpcRequest _request);
+
+    /// <summary>
+    /// Registers a custom method handler.
+    /// </summary>
+    /// <param name="_method">The method name</param>
+    /// <param name="_handler">The method handler</param>
+    void registerMethodHandler(str _method, IMCPMethodHandler _handler);
+
+    /// <summary>
+    /// Unregisters a custom method handler.
+    /// </summary>
+    /// <param name="_method">The method name</param>
+    void unregisterMethodHandler(str _method);
+
+    /// <summary>
+    /// Sets the tool provider manager.
+    /// </summary>
+    /// <param name="_manager">The tool provider manager</param>
+    void setToolProviderManager(IMCPToolProviderManager _manager);
+
+    /// <summary>
+    /// Sets the authentication provider.
+    /// </summary>
+    /// <param name="_authProvider">The authentication provider</param>
+    void setAuthenticationProvider(IMCPAuthenticationProvider _authProvider);
+
+    /// <summary>
+    /// Gets processing statistics.
+    /// </summary>
+    /// <returns>Container with processing statistics</returns>
+    container getStatistics();
+} 

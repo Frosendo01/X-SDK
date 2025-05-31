@@ -1,0 +1,119 @@
+/// <summary>
+/// Interface for MCP server logging.
+/// Enables integration with D365 logging systems and external monitoring.
+/// </summary>
+interface IMCPLogger
+{
+    /// <summary>
+    /// Logs a debug message.
+    /// </summary>
+    /// <param name="_message">The debug message</param>
+    /// <param name="_context">Additional context information</param>
+    void debug(str _message, container _context = conNull());
+
+    /// <summary>
+    /// Logs an informational message.
+    /// </summary>
+    /// <param name="_message">The informational message</param>
+    /// <param name="_context">Additional context information</param>
+    void info(str _message, container _context = conNull());
+
+    /// <summary>
+    /// Logs a warning message.
+    /// </summary>
+    /// <param name="_message">The warning message</param>
+    /// <param name="_context">Additional context information</param>
+    void warning(str _message, container _context = conNull());
+
+    /// <summary>
+    /// Logs an error message.
+    /// </summary>
+    /// <param name="_message">The error message</param>
+    /// <param name="_context">Additional context information</param>
+    void error(str _message, container _context = conNull());
+
+    /// <summary>
+    /// Logs a critical error message.
+    /// </summary>
+    /// <param name="_message">The critical error message</param>
+    /// <param name="_context">Additional context information</param>
+    void critical(str _message, container _context = conNull());
+
+    /// <summary>
+    /// Logs a message with a specific level.
+    /// </summary>
+    /// <param name="_level">The logging level</param>
+    /// <param name="_message">The message</param>
+    /// <param name="_context">Additional context information</param>
+    void log(MCPLoggingLevel _level, str _message, container _context = conNull());
+
+    /// <summary>
+    /// Logs an exception with full stack trace.
+    /// </summary>
+    /// <param name="_exception">The exception to log</param>
+    /// <param name="_message">Additional message</param>
+    /// <param name="_context">Additional context information</param>
+    void logException(Exception _exception, str _message = "", container _context = conNull());
+
+    /// <summary>
+    /// Logs a request/response pair for auditing.
+    /// </summary>
+    /// <param name="_request">The request message</param>
+    /// <param name="_response">The response message</param>
+    /// <param name="_connectionId">The connection ID</param>
+    /// <param name="_durationMs">The processing duration in milliseconds</param>
+    void logRequestResponse(str _request, str _response, str _connectionId, int _durationMs);
+
+    /// <summary>
+    /// Logs connection events.
+    /// </summary>
+    /// <param name="_event">The connection event type</param>
+    /// <param name="_connectionId">The connection ID</param>
+    /// <param name="_clientInfo">Client information</param>
+    void logConnectionEvent(str _event, str _connectionId, container _clientInfo = conNull());
+
+    /// <summary>
+    /// Logs performance metrics.
+    /// </summary>
+    /// <param name="_metric">The metric name</param>
+    /// <param name="_value">The metric value</param>
+    /// <param name="_unit">The metric unit</param>
+    /// <param name="_context">Additional context</param>
+    void logMetric(str _metric, real _value, str _unit = "", container _context = conNull());
+
+    /// <summary>
+    /// Gets the current logging level.
+    /// </summary>
+    /// <returns>The current logging level</returns>
+    MCPLoggingLevel getLogLevel();
+
+    /// <summary>
+    /// Sets the logging level.
+    /// </summary>
+    /// <param name="_level">The logging level to set</param>
+    void setLogLevel(MCPLoggingLevel _level);
+
+    /// <summary>
+    /// Checks if a specific log level is enabled.
+    /// </summary>
+    /// <param name="_level">The logging level to check</param>
+    /// <returns>True if the level is enabled</returns>
+    boolean isLogLevelEnabled(MCPLoggingLevel _level);
+
+    /// <summary>
+    /// Flushes any buffered log entries.
+    /// </summary>
+    void flush();
+
+    /// <summary>
+    /// Initializes the logger with configuration.
+    /// </summary>
+    /// <param name="_config">Logger configuration</param>
+    /// <returns>True if initialization was successful</returns>
+    boolean initialize(container _config);
+
+    /// <summary>
+    /// Disposes of the logger and releases resources.
+    /// </summary>
+    void dispose();
+} 

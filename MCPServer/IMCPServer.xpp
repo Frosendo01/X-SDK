@@ -1,0 +1,60 @@
+/// <summary>
+/// Interface for Model Context Protocol server implementations.
+/// Defines the contract for MCP servers and enables extensibility.
+/// </summary>
+interface IMCPServer
+{
+    /// <summary>
+    /// Starts the MCP server and begins listening for client connections.
+    /// </summary>
+    /// <returns>True if server started successfully</returns>
+    boolean start();
+
+    /// <summary>
+    /// Stops the MCP server gracefully, closing all connections.
+    /// </summary>
+    /// <returns>True if server stopped successfully</returns>
+    boolean stop();
+
+    /// <summary>
+    /// Gets the current status of the server.
+    /// </summary>
+    /// <returns>True if server is running</returns>
+    boolean isRunning();
+
+    /// <summary>
+    /// Gets the number of active client connections.
+    /// </summary>
+    /// <returns>Number of active connections</returns>
+    int getActiveConnectionCount();
+
+    /// <summary>
+    /// Registers a tool provider for handling specific tool requests.
+    /// </summary>
+    /// <param name="_provider">The tool provider to register</param>
+    void registerToolProvider(IMCPToolProvider _provider);
+
+    /// <summary>
+    /// Unregisters a tool provider.
+    /// </summary>
+    /// <param name="_provider">The tool provider to unregister</param>
+    void unregisterToolProvider(IMCPToolProvider _provider);
+
+    /// <summary>
+    /// Sets the authentication provider for validating client connections.
+    /// </summary>
+    /// <param name="_authProvider">The authentication provider</param>
+    void setAuthenticationProvider(IMCPAuthenticationProvider _authProvider);
+
+    /// <summary>
+    /// Gets the server configuration.
+    /// </summary>
+    /// <returns>The server configuration</returns>
+    MCPServerConfig getConfig();
+
+    /// <summary>
+    /// Updates the server configuration.
+    /// </summary>
+    /// <param name="_config">The new configuration</param>
+    void updateConfig(MCPServerConfig _config);
+} 

@@ -1,0 +1,50 @@
+/// <summary>
+/// Interface for handling client connections.
+/// Manages incoming client connections and delegates to appropriate processors.
+/// </summary>
+interface IMCPConnectionHandler
+{
+    /// <summary>
+    /// Handles a new client connection.
+    /// </summary>
+    /// <param name="_connection">The client connection</param>
+    /// <returns>True if connection was accepted and will be handled</returns>
+    boolean handleConnection(IMCPClientConnection _connection);
+
+    /// <summary>
+    /// Handles connection closure.
+    /// </summary>
+    /// <param name="_connection">The client connection being closed</param>
+    void handleConnectionClosed(IMCPClientConnection _connection);
+
+    /// <summary>
+    /// Handles connection errors.
+    /// </summary>
+    /// <param name="_connection">The client connection with an error</param>
+    /// <param name="_error">The error that occurred</param>
+    void handleConnectionError(IMCPClientConnection _connection, MCPException _error);
+
+    /// <summary>
+    /// Sets the message processor for handling MCP messages.
+    /// </summary>
+    /// <param name="_processor">The message processor</param>
+    void setMessageProcessor(IMCPMessageProcessor _processor);
+
+    /// <summary>
+    /// Gets the current number of active connections being handled.
+    /// </summary>
+    /// <returns>Number of active connections</returns>
+    int getActiveConnectionCount();
+
+    /// <summary>
+    /// Closes all active connections gracefully.
+    /// </summary>
+    /// <returns>True if all connections were closed successfully</returns>
+    boolean closeAllConnections();
+
+    /// <summary>
+    /// Gets information about all active connections.
+    /// </summary>
+    /// <returns>Container with connection information</returns>
+    container getConnectionInfo();
+} 

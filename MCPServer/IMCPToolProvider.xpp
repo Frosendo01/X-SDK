@@ -1,0 +1,58 @@
+/// <summary>
+/// Interface for providing custom MCP tools.
+/// Enables plugin architecture for extending server functionality.
+/// </summary>
+interface IMCPToolProvider
+{
+    /// <summary>
+    /// Gets the list of tools provided by this provider.
+    /// </summary>
+    /// <returns>Container of MCPTool objects</returns>
+    container getTools();
+
+    /// <summary>
+    /// Gets a specific tool by name.
+    /// </summary>
+    /// <param name="_toolName">The name of the tool</param>
+    /// <returns>The MCPTool object or null if not found</returns>
+    MCPTool getTool(str _toolName);
+
+    /// <summary>
+    /// Executes a tool with the provided arguments.
+    /// </summary>
+    /// <param name="_toolName">The name of the tool to execute</param>
+    /// <param name="_arguments">The tool arguments as JSON string</param>
+    /// <returns>The tool execution result as MCPContent</returns>
+    MCPContent executeTool(str _toolName, str _arguments);
+
+    /// <summary>
+    /// Validates if this provider can handle the specified tool.
+    /// </summary>
+    /// <param name="_toolName">The name of the tool</param>
+    /// <returns>True if this provider can handle the tool</returns>
+    boolean canHandleTool(str _toolName);
+
+    /// <summary>
+    /// Gets the provider's unique identifier.
+    /// </summary>
+    /// <returns>The provider ID</returns>
+    str getProviderId();
+
+    /// <summary>
+    /// Gets the provider's display name.
+    /// </summary>
+    /// <returns>The provider name</returns>
+    str getProviderName();
+
+    /// <summary>
+    /// Initializes the provider with the given configuration.
+    /// </summary>
+    /// <param name="_config">The provider configuration</param>
+    /// <returns>True if initialization was successful</returns>
+    boolean initialize(container _config);
+
+    /// <summary>
+    /// Disposes of the provider and cleans up resources.
+    /// </summary>
+    void dispose();
+} 

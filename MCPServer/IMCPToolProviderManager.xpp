@@ -1,0 +1,92 @@
+/// <summary>
+/// Interface for managing multiple tool providers.
+/// Coordinates tool providers and manages the overall tool ecosystem.
+/// </summary>
+interface IMCPToolProviderManager
+{
+    /// <summary>
+    /// Registers a tool provider.
+    /// </summary>
+    /// <param name="_provider">The tool provider to register</param>
+    /// <returns>True if provider was registered successfully</returns>
+    boolean registerProvider(IMCPToolProvider _provider);
+
+    /// <summary>
+    /// Unregisters a tool provider.
+    /// </summary>
+    /// <param name="_providerId">The provider ID to unregister</param>
+    /// <returns>True if provider was unregistered successfully</returns>
+    boolean unregisterProvider(str _providerId);
+
+    /// <summary>
+    /// Gets all registered tool providers.
+    /// </summary>
+    /// <returns>Container of IMCPToolProvider objects</returns>
+    container getProviders();
+
+    /// <summary>
+    /// Gets a specific tool provider by ID.
+    /// </summary>
+    /// <param name="_providerId">The provider ID</param>
+    /// <returns>The tool provider or null if not found</returns>
+    IMCPToolProvider getProvider(str _providerId);
+
+    /// <summary>
+    /// Gets all available tools from all providers.
+    /// </summary>
+    /// <returns>Container of MCPTool objects</returns>
+    container getAllTools();
+
+    /// <summary>
+    /// Gets a specific tool by name.
+    /// </summary>
+    /// <param name="_toolName">The tool name</param>
+    /// <returns>The MCPTool object or null if not found</returns>
+    MCPTool getTool(str _toolName);
+
+    /// <summary>
+    /// Finds the provider that can handle a specific tool.
+    /// </summary>
+    /// <param name="_toolName">The tool name</param>
+    /// <returns>The tool provider or null if none can handle it</returns>
+    IMCPToolProvider findProviderForTool(str _toolName);
+
+    /// <summary>
+    /// Executes a tool using the appropriate provider.
+    /// </summary>
+    /// <param name="_toolName">The tool name</param>
+    /// <param name="_arguments">The tool arguments</param>
+    /// <returns>The tool execution result</returns>
+    MCPContent executeTool(str _toolName, str _arguments);
+
+    /// <summary>
+    /// Validates if a tool exists and can be executed.
+    /// </summary>
+    /// <param name="_toolName">The tool name</param>
+    /// <param name="_arguments">The tool arguments (optional)</param>
+    /// <returns>True if tool is valid and executable</returns>
+    boolean validateTool(str _toolName, str _arguments = "");
+
+    /// <summary>
+    /// Gets tool execution statistics.
+    /// </summary>
+    /// <returns>Container with execution statistics</returns>
+    container getExecutionStatistics();
+
+    /// <summary>
+    /// Refreshes the tool catalog from all providers.
+    /// </summary>
+    /// <returns>True if refresh was successful</returns>
+    boolean refreshToolCatalog();
+
+    /// <summary>
+    /// Initializes all registered providers.
+    /// </summary>
+    /// <returns>True if all providers initialized successfully</returns>
+    boolean initializeProviders();
+
+    /// <summary>
+    /// Disposes of all providers and cleans up resources.
+    /// </summary>
+    void dispose();
+} 

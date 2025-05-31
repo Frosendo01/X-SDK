@@ -1,0 +1,115 @@
+/// <summary>
+/// Interface for individual client connections.
+/// Represents a client session and manages its state and communication.
+/// </summary>
+interface IMCPClientConnection
+{
+    /// <summary>
+    /// Gets the unique connection identifier.
+    /// </summary>
+    /// <returns>The connection ID</returns>
+    str getConnectionId();
+
+    /// <summary>
+    /// Gets the client's remote address.
+    /// </summary>
+    /// <returns>The client's IP address</returns>
+    str getRemoteAddress();
+
+    /// <summary>
+    /// Gets the client's remote port.
+    /// </summary>
+    /// <returns>The client's port number</returns>
+    int getRemotePort();
+
+    /// <summary>
+    /// Gets the connection establishment time.
+    /// </summary>
+    /// <returns>The connection timestamp</returns>
+    utcdatetime getConnectionTime();
+
+    /// <summary>
+    /// Gets the last activity time for this connection.
+    /// </summary>
+    /// <returns>The last activity timestamp</returns>
+    utcdatetime getLastActivityTime();
+
+    /// <summary>
+    /// Checks if the connection is currently active.
+    /// </summary>
+    /// <returns>True if connection is active</returns>
+    boolean isConnected();
+
+    /// <summary>
+    /// Sends a message to the client.
+    /// </summary>
+    /// <param name="_message">The message to send</param>
+    /// <returns>True if message was sent successfully</returns>
+    boolean sendMessage(str _message);
+
+    /// <summary>
+    /// Receives a message from the client (non-blocking).
+    /// </summary>
+    /// <returns>The received message or empty string if none available</returns>
+    str receiveMessage();
+
+    /// <summary>
+    /// Closes the connection gracefully.
+    /// </summary>
+    /// <returns>True if connection was closed successfully</returns>
+    boolean close();
+
+    /// <summary>
+    /// Forces the connection to close immediately.
+    /// </summary>
+    void forceClose();
+
+    /// <summary>
+    /// Gets the authentication state of the connection.
+    /// </summary>
+    /// <returns>True if connection is authenticated</returns>
+    boolean isAuthenticated();
+
+    /// <summary>
+    /// Sets the authentication state of the connection.
+    /// </summary>
+    /// <param name="_authenticated">The authentication state</param>
+    /// <param name="_credentials">The authentication credentials</param>
+    void setAuthenticated(boolean _authenticated, str _credentials = "");
+
+    /// <summary>
+    /// Gets the client's authentication credentials.
+    /// </summary>
+    /// <returns>The authentication credentials</returns>
+    str getCredentials();
+
+    /// <summary>
+    /// Gets connection metadata.
+    /// </summary>
+    /// <returns>Container with connection metadata</returns>
+    container getMetadata();
+
+    /// <summary>
+    /// Sets connection metadata.
+    /// </summary>
+    /// <param name="_metadata">The metadata to set</param>
+    void setMetadata(container _metadata);
+
+    /// <summary>
+    /// Gets the connection configuration.
+    /// </summary>
+    /// <returns>The connection configuration</returns>
+    container getConfiguration();
+
+    /// <summary>
+    /// Sets the connection timeout.
+    /// </summary>
+    /// <param name="_timeoutSeconds">The timeout in seconds</param>
+    void setTimeout(int _timeoutSeconds);
+
+    /// <summary>
+    /// Checks if the connection has timed out.
+    /// </summary>
+    /// <returns>True if connection has timed out</returns>
+    boolean hasTimedOut();
+} 

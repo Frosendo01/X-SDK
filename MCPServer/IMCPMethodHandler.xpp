@@ -1,0 +1,58 @@
+/// <summary>
+/// Interface for handling custom MCP methods.
+/// Enables extensibility for custom protocol methods beyond the standard MCP specification.
+/// </summary>
+interface IMCPMethodHandler
+{
+    /// <summary>
+    /// Gets the method name this handler supports.
+    /// </summary>
+    /// <returns>The method name</returns>
+    str getMethodName();
+
+    /// <summary>
+    /// Handles the method execution.
+    /// </summary>
+    /// <param name="_connection">The client connection</param>
+    /// <param name="_request">The method request</param>
+    /// <returns>The method response as JSON string</returns>
+    str handleMethod(IMCPClientConnection _connection, MCPJsonRpcRequest _request);
+
+    /// <summary>
+    /// Validates if this handler can process the request.
+    /// </summary>
+    /// <param name="_request">The method request</param>
+    /// <returns>True if the request can be handled</returns>
+    boolean canHandle(MCPJsonRpcRequest _request);
+
+    /// <summary>
+    /// Gets the required permissions for this method.
+    /// </summary>
+    /// <returns>Container with required permissions</returns>
+    container getRequiredPermissions();
+
+    /// <summary>
+    /// Gets the method schema/documentation.
+    /// </summary>
+    /// <returns>Container with method schema information</returns>
+    container getMethodSchema();
+
+    /// <summary>
+    /// Validates method parameters.
+    /// </summary>
+    /// <param name="_params">The method parameters</param>
+    /// <returns>True if parameters are valid</returns>
+    boolean validateParameters(str _params);
+
+    /// <summary>
+    /// Initializes the method handler.
+    /// </summary>
+    /// <param name="_config">Handler configuration</param>
+    /// <returns>True if initialization was successful</returns>
+    boolean initialize(container _config);
+
+    /// <summary>
+    /// Disposes of the handler and cleans up resources.
+    /// </summary>
+    void dispose();
+} 

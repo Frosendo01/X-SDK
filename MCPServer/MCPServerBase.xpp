@@ -1,0 +1,408 @@
+/// <summary>
+/// Abstract base class for MCP server implementations.
+/// Provides the foundation for MCP servers with proper D365 integration patterns.
+/// Follows X++ best practices and enables extensibility through virtual methods.
+/// </summary>
+[RunOn(Server)]
+public abstract class MCPServerBase implements IMCPServer
+{
+    private MCPServerConfig config;
+    private IMCPNetworkListener networkListener;
+    private IMCPConnectionHandler connectionHandler;
+    private IMCPMessageProcessor messageProcessor;
+    private IMCPToolProviderManager toolProviderManager;
+    private IMCPAuthenticationProvider authProvider;
+    private IMCPLogger logger;
+    private boolean isRunning;
+    private int activeConnections;
+    private container toolProviders;
+    private utcdatetime startTime;
+    private utcdatetime lastActivityTime;
+
+    /// <summary>
+    /// Initializes a new instance of MCPServerBase.
+    /// </summary>
+    /// <param name="_config">The server configuration</param>
+    public void new(MCPServerConfig _config = null)
+    {
+        if (_config == null)
+        {
+            _config = MCPServerConfig::createDevelopmentConfig();
+        }
+        
+        this.config = _config;
+        this.isRunning = false;
+        this.activeConnections = 0;
+        this.toolProviders = conNull();
+        this.lastActivityTime = DateTimeUtil::getSystemDateTime();
+        
+        this.initializeComponents();
+    }
+
+    /// <summary>
+    /// Starts the MCP server and begins listening for client connections.
+    /// </summary>
+    /// <returns>True if server started successfully</returns>
+    [SysEntryPoint]
+    public boolean start()
+    {
+        try
+        {
+            if (this.isRunning)
+            {
+                if (this.logger)
+                {
+                    this.logger.warning("Server is already running");
+                }
+                return true;
+            }
+
+            if (!this.config.validate())
+            {
+                throw MCPException::createInvalidParams("Invalid server configuration");
+            }
+
+            if (this.logger)
+            {
+                this.logger.info(strFmt("Starting MCP server on %1:%2", this.config.parmBindAddress(), this.config.parmPort()));
+            }
+
+            // Initialize authentication provider if enabled
+            if (this.config.parmEnableAuthentication() && this.authProvider)
+            {
+                if (!this.authProvider.initialize(conNull()))
+                {
+                    throw MCPException::createInternalError("Failed to initialize authentication provider");
+                }
+            }
+
+            // Initialize tool provider manager
+            if (this.toolProviderManager)
+            {
+                if (!this.toolProviderManager.initializeProviders())
+                {
+                    throw MCPException::createInternalError("Failed to initialize tool providers");
+                }
+            }
+
+            // Start network listener
+            if (!this.networkListener.start())
+            {
+                throw MCPException::createInternalError("Failed to start network listener");
+            }
+
+            this.isRunning = true;
+            this.startTime = DateTimeUtil::getSystemDateTime();
+            this.lastActivityTime = this.startTime;
+
+            if (this.logger)
+            {
+                this.logger.info("MCP server started successfully");
+            }
+
+            // Call virtual method for derived class initialization
+            this.onServerStarted();
+
+            return true;
+        }
+        catch (Exception::Error)
+        {
+            if (this.logger)
+            {
+                this.logger.error(strFmt("Failed to start MCP server: %1", Exception::getLastError()));
+            }
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Stops the MCP server gracefully, closing all connections.
+    /// </summary>
+    /// <returns>True if server stopped successfully</returns>
+    [SysEntryPoint]
+    public boolean stop()
+    {
+        try
+        {
+            if (!this.isRunning)
+            {
+                if (this.logger)
+                {
+                    this.logger.warning("Server is not running");
+                }
+                return true;
+            }
+
+            if (this.logger)
+            {
+                this.logger.info("Stopping MCP server...");
+            }
+
+            // Call virtual method for derived class cleanup
+            this.onServerStopping();
+
+            // Stop network listener and close connections
+            if (this.networkListener)
+            {
+                this.networkListener.stop();
+            }
+
+            if (this.connectionHandler)
+            {
+                this.connectionHandler.closeAllConnections();
+            }
+
+            // Dispose of components
+            if (this.toolProviderManager)
+            {
+                this.toolProviderManager.dispose();
+            }
+
+            this.isRunning = false;
+            this.activeConnections = 0;
+
+            if (this.logger)
+            {
+                this.logger.info("MCP server stopped successfully");
+                this.logger.flush();
+            }
+
+            // Call virtual method for derived class finalization
+            this.onServerStopped();
+
+            return true;
+        }
+        catch (Exception::Error)
+        {
+            if (this.logger)
+            {
+                this.logger.error(strFmt("Error stopping MCP server: %1", Exception::getLastError()));
+            }
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Gets the current status of the server.
+    /// </summary>
+    /// <returns>True if server is running</returns>
+    public boolean isRunning()
+    {
+        return this.isRunning;
+    }
+
+    /// <summary>
+    /// Gets the number of active client connections.
+    /// </summary>
+    /// <returns>Number of active connections</returns>
+    public int getActiveConnectionCount()
+    {
+        if (this.connectionHandler)
+        {
+            return this.connectionHandler.getActiveConnectionCount();
+        }
+        return this.activeConnections;
+    }
+
+    /// <summary>
+    /// Registers a tool provider for handling specific tool requests.
+    /// </summary>
+    /// <param name="_provider">The tool provider to register</param>
+    public void registerToolProvider(IMCPToolProvider _provider)
+    {
+        if (!_provider)
+        {
+            throw MCPException::createInvalidParams("Tool provider cannot be null");
+        }
+
+        if (this.toolProviderManager)
+        {
+            this.toolProviderManager.registerProvider(_provider);
+            
+            if (this.logger)
+            {
+                this.logger.info(strFmt("Registered tool provider: %1", _provider.getProviderName()));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Unregisters a tool provider.
+    /// </summary>
+    /// <param name="_provider">The tool provider to unregister</param>
+    public void unregisterToolProvider(IMCPToolProvider _provider)
+    {
+        if (!_provider)
+        {
+            return;
+        }
+
+        if (this.toolProviderManager)
+        {
+            this.toolProviderManager.unregisterProvider(_provider.getProviderId());
+            
+            if (this.logger)
+            {
+                this.logger.info(strFmt("Unregistered tool provider: %1", _provider.getProviderName()));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sets the authentication provider for validating client connections.
+    /// </summary>
+    /// <param name="_authProvider">The authentication provider</param>
+    public void setAuthenticationProvider(IMCPAuthenticationProvider _authProvider)
+    {
+        this.authProvider = _authProvider;
+        
+        if (this.messageProcessor)
+        {
+            this.messageProcessor.setAuthenticationProvider(_authProvider);
+        }
+        
+        if (this.logger)
+        {
+            this.logger.info("Authentication provider set");
+        }
+    }
+
+    /// <summary>
+    /// Gets the server configuration.
+    /// </summary>
+    /// <returns>The server configuration</returns>
+    public MCPServerConfig getConfig()
+    {
+        return this.config;
+    }
+
+    /// <summary>
+    /// Updates the server configuration.
+    /// </summary>
+    /// <param name="_config">The new configuration</param>
+    public void updateConfig(MCPServerConfig _config)
+    {
+        if (!_config)
+        {
+            throw MCPException::createInvalidParams("Configuration cannot be null");
+        }
+        
+        if (!_config.validate())
+        {
+            throw MCPException::createInvalidParams("Invalid configuration");
+        }
+        
+        MCPServerConfig oldConfig = this.config;
+        this.config = _config;
+        
+        // Update logger level if changed
+        if (this.logger && oldConfig.parmLoggingLevel() != _config.parmLoggingLevel())
+        {
+            this.logger.setLogLevel(_config.parmLoggingLevel());
+        }
+        
+        if (this.logger)
+        {
+            this.logger.info("Server configuration updated");
+        }
+        
+        // Call virtual method for derived class configuration updates
+        this.onConfigurationUpdated(oldConfig, _config);
+    }
+
+    /// <summary>
+    /// Sets the logger for the server.
+    /// </summary>
+    /// <param name="_logger">The logger to use</param>
+    public void setLogger(IMCPLogger _logger)
+    {
+        this.logger = _logger;
+        
+        if (_logger)
+        {
+            _logger.setLogLevel(this.config.parmLoggingLevel());
+        }
+    }
+
+    /// <summary>
+    /// Gets the server logger.
+    /// </summary>
+    /// <returns>The server logger</returns>
+    protected IMCPLogger getLogger()
+    {
+        return this.logger;
+    }
+
+    /// <summary>
+    /// Initializes server components. Override in derived classes for custom initialization.
+    /// </summary>
+    protected virtual void initializeComponents()
+    {
+        // Create default implementations
+        // Derived classes should override this to provide custom implementations
+    }
+
+    /// <summary>
+    /// Called when the server starts. Override in derived classes for custom startup logic.
+    /// </summary>
+    protected virtual void onServerStarted()
+    {
+        // Override in derived classes
+    }
+
+    /// <summary>
+    /// Called when the server is stopping. Override in derived classes for custom shutdown logic.
+    /// </summary>
+    protected virtual void onServerStopping()
+    {
+        // Override in derived classes
+    }
+
+    /// <summary>
+    /// Called when the server has stopped. Override in derived classes for custom cleanup.
+    /// </summary>
+    protected virtual void onServerStopped()
+    {
+        // Override in derived classes
+    }
+
+    /// <summary>
+    /// Called when configuration is updated. Override in derived classes for custom configuration handling.
+    /// </summary>
+    /// <param name="_oldConfig">The previous configuration</param>
+    /// <param name="_newConfig">The new configuration</param>
+    protected virtual void onConfigurationUpdated(MCPServerConfig _oldConfig, MCPServerConfig _newConfig)
+    {
+        // Override in derived classes
+    }
+
+    /// <summary>
+    /// Gets server runtime statistics.
+    /// </summary>
+    /// <returns>Container with server statistics</returns>
+    public container getStatistics()
+    {
+        container stats = conNull();
+        
+        stats = conIns(stats, conLen(stats) + 1, ["ServerName", this.config.parmServerName()]);
+        stats = conIns(stats, conLen(stats) + 1, ["IsRunning", this.isRunning]);
+        stats = conIns(stats, conLen(stats) + 1, ["ActiveConnections", this.getActiveConnectionCount()]);
+        stats = conIns(stats, conLen(stats) + 1, ["StartTime", this.startTime]);
+        stats = conIns(stats, conLen(stats) + 1, ["LastActivityTime", this.lastActivityTime]);
+        
+        if (this.toolProviderManager)
+        {
+            stats = conIns(stats, conLen(stats) + 1, ["ToolCount", conLen(this.toolProviderManager.getAllTools())]);
+        }
+        
+        return stats;
+    }
+
+    /// <summary>
+    /// Updates the last activity time.
+    /// </summary>
+    protected void updateLastActivityTime()
+    {
+        this.lastActivityTime = DateTimeUtil::getSystemDateTime();
+    }
+} 

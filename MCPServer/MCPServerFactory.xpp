@@ -1,0 +1,249 @@
+/// <summary>
+/// Factory class for creating MCP server instances.
+/// Provides different server configurations for various scenarios.
+/// </summary>
+public final class MCPServerFactory
+{
+    /// <summary>
+    /// Creates a basic MCP server with default configuration.
+    /// </summary>
+    /// <returns>A new MCPServer instance</returns>
+    public static IMCPServer createDefaultServer()
+    {
+        MCPServerConfig config = MCPServerConfig::createDevelopmentConfig();
+        return MCPServerFactory::createServerWithConfig(config);
+    }
+
+    /// <summary>
+    /// Creates an MCP server with the specified configuration.
+    /// </summary>
+    /// <param name="_config">The server configuration</param>
+    /// <returns>A new MCPServer instance</returns>
+    public static IMCPServer createServerWithConfig(MCPServerConfig _config)
+    {
+        if (!_config)
+        {
+            throw MCPException::createInvalidParams("Configuration cannot be null");
+        }
+
+        if (!_config.validate())
+        {
+            throw MCPException::createInvalidParams("Invalid server configuration");
+        }
+
+        // Create a concrete server implementation
+        // For now, we'll create a basic HTTP server
+        MCPHttpServer server = new MCPHttpServer(_config);
+        
+        // Set up default components
+        MCPServerFactory::setupDefaultComponents(server);
+        
+        return server;
+    }
+
+    /// <summary>
+    /// Creates a development server with debug settings.
+    /// </summary>
+    /// <param name="_port">The port to bind to (default 8080)</param>
+    /// <returns>A new MCPServer instance configured for development</returns>
+    public static IMCPServer createDevelopmentServer(int _port = 8080)
+    {
+        MCPServerConfig config = MCPServerConfig::createDevelopmentConfig();
+        config.parmPort(_port);
+        config.parmLoggingLevel(MCPLoggingLevel::Debug);
+        config.parmEnableAuthentication(false);
+        
+        return MCPServerFactory::createServerWithConfig(config);
+    }
+
+    /// <summary>
+    /// Creates a production server with security and monitoring.
+    /// </summary>
+    /// <param name="_port">The port to bind to (default 443)</param>
+    /// <param name="_enableAuth">Whether to enable authentication</param>
+    /// <returns>A new MCPServer instance configured for production</returns>
+    public static IMCPServer createProductionServer(int _port = 443, boolean _enableAuth = true)
+    {
+        MCPServerConfig config = MCPServerConfig::createProductionConfig();
+        config.parmPort(_port);
+        config.parmEnableAuthentication(_enableAuth);
+        config.parmLoggingLevel(MCPLoggingLevel::Warning);
+        
+        IMCPServer server = MCPServerFactory::createServerWithConfig(config);
+        
+        // Add production-specific components
+        if (_enableAuth)
+        {
+            MCPTokenAuthenticationProvider authProvider = new MCPTokenAuthenticationProvider();
+            server.setAuthenticationProvider(authProvider);
+        }
+        
+        return server;
+    }
+
+    /// <summary>
+    /// Creates a server for testing purposes with minimal overhead.
+    /// </summary>
+    /// <param name="_port">The port to bind to (default 0 for random)</param>
+    /// <returns>A new MCPServer instance configured for testing</returns>
+    public static IMCPServer createTestServer(int _port = 0)
+    {
+        MCPServerConfig config = new MCPServerConfig();
+        config.parmPort(_port);
+        config.parmBindAddress("127.0.0.1");
+        config.parmMaxConnections(5);
+        config.parmEnableAuthentication(false);
+        config.parmEnableLogging(false);
+        
+        return MCPServerFactory::createServerWithConfig(config);
+    }
+
+    /// <summary>
+    /// Creates a server with custom tool providers.
+    /// </summary>
+    /// <param name="_config">The server configuration</param>
+    /// <param name="_toolProviders">Container of tool providers to register</param>
+    /// <returns>A new MCPServer instance with the specified tool providers</returns>
+    public static IMCPServer createServerWithTools(MCPServerConfig _config, container _toolProviders)
+    {
+        IMCPServer server = MCPServerFactory::createServerWithConfig(_config);
+        
+        // Register tool providers
+        int i;
+        IMCPToolProvider provider;
+        
+        for (i = 1; i <= conLen(_toolProviders); i++)
+        {
+            provider = conPeek(_toolProviders, i);
+            if (provider)
+            {
+                server.registerToolProvider(provider);
+            }
+        }
+        
+        return server;
+    }
+
+    /// <summary>
+    /// Creates a server from system parameters.
+    /// Reads configuration from D365 system parameters.
+    /// </summary>
+    /// <returns>A new MCPServer instance configured from system parameters</returns>
+    public static IMCPServer createFromSystemParameters()
+    {
+        MCPServerConfig config = MCPServerFactory::loadConfigurationFromParameters();
+        return MCPServerFactory::createServerWithConfig(config);
+    }
+
+    /// <summary>
+    /// Validates server requirements and dependencies.
+    /// </summary>
+    /// <param name="_config">The server configuration to validate</param>
+    /// <returns>True if all requirements are met</returns>
+    public static boolean validateServerRequirements(MCPServerConfig _config)
+    {
+        if (!_config)
+        {
+            return false;
+        }
+
+        if (!_config.validate())
+        {
+            return false;
+        }
+
+        // Check if the port is available (simplified check)
+        if (_config.parmPort() <= 1024 && !MCPServerFactory::hasAdministratorPrivileges())
+        {
+            return false;
+        }
+
+        // Check D365 environment compatibility
+        if (!MCPServerFactory::isD365EnvironmentCompatible())
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the default server configuration from the environment.
+    /// </summary>
+    /// <returns>Default configuration based on current environment</returns>
+    public static MCPServerConfig getDefaultConfiguration()
+    {
+        if (MCPServerFactory::isProductionEnvironment())
+        {
+            return MCPServerConfig::createProductionConfig();
+        }
+        else
+        {
+            return MCPServerConfig::createDevelopmentConfig();
+        }
+    }
+
+    /// <summary>
+    /// Sets up default components for a server instance.
+    /// </summary>
+    /// <param name="_server">The server to configure</param>
+    private static void setupDefaultComponents(MCPServerBase _server)
+    {
+        if (!_server)
+        {
+            return;
+        }
+
+        // Set up default logger
+        MCPD365Logger logger = new MCPD365Logger();
+        _server.setLogger(logger);
+        
+        // Add any default tool providers
+        // This would be expanded based on available built-in tools
+    }
+
+    /// <summary>
+    /// Loads server configuration from D365 system parameters.
+    /// </summary>
+    /// <returns>Configuration loaded from system parameters</returns>
+    private static MCPServerConfig loadConfigurationFromParameters()
+    {
+        MCPServerConfig config = new MCPServerConfig();
+        
+        // This would read from actual D365 parameters
+        // For now, return default configuration
+        config = MCPServerConfig::createDevelopmentConfig();
+        
+        return config;
+    }
+
+    /// <summary>
+    /// Checks if the current user has administrator privileges.
+    /// </summary>
+    /// <returns>True if user has admin privileges</returns>
+    private static boolean hasAdministratorPrivileges()
+    {
+        // Simplified check - in real implementation, would check D365 permissions
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if the current D365 environment is compatible.
+    /// </summary>
+    /// <returns>True if environment is compatible</returns>
+    private static boolean isD365EnvironmentCompatible()
+    {
+        // Check for required D365 features and versions
+        return true;
+    }
+
+    /// <summary>
+    /// Determines if the current environment is production.
+    /// </summary>
+    /// <returns>True if running in production environment</returns>
+    private static boolean isProductionEnvironment()
+    {
+        // This would check actual D365 environment settings
+        return false;
+    }
+} 

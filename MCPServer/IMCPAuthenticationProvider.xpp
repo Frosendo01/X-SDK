@@ -1,0 +1,63 @@
+/// <summary>
+/// Interface for authenticating MCP client connections.
+/// Enables custom authentication and authorization implementations.
+/// </summary>
+interface IMCPAuthenticationProvider
+{
+    /// <summary>
+    /// Authenticates a client connection using the provided credentials.
+    /// </summary>
+    /// <param name="_credentials">The authentication credentials (e.g., token, username/password)</param>
+    /// <param name="_clientInfo">Additional client information</param>
+    /// <returns>True if authentication is successful</returns>
+    boolean authenticate(str _credentials, container _clientInfo);
+
+    /// <summary>
+    /// Validates if the authenticated client is authorized for a specific operation.
+    /// </summary>
+    /// <param name="_credentials">The client credentials</param>
+    /// <param name="_operation">The operation being requested</param>
+    /// <param name="_resource">The resource being accessed (optional)</param>
+    /// <returns>True if the operation is authorized</returns>
+    boolean authorize(str _credentials, str _operation, str _resource = "");
+
+    /// <summary>
+    /// Validates an authentication token.
+    /// </summary>
+    /// <param name="_token">The authentication token</param>
+    /// <returns>True if the token is valid</returns>
+    boolean validateToken(str _token);
+
+    /// <summary>
+    /// Refreshes an authentication token if supported.
+    /// </summary>
+    /// <param name="_token">The current token</param>
+    /// <returns>A new token or empty string if refresh is not supported</returns>
+    str refreshToken(str _token);
+
+    /// <summary>
+    /// Gets the authentication scheme supported by this provider.
+    /// </summary>
+    /// <returns>The authentication scheme name (e.g., "Bearer", "Basic", "Custom")</returns>
+    str getAuthenticationScheme();
+
+    /// <summary>
+    /// Gets the provider's configuration requirements.
+    /// </summary>
+    /// <returns>Container describing required configuration parameters</returns>
+    container getConfigurationRequirements();
+
+    /// <summary>
+    /// Initializes the authentication provider with configuration.
+    /// </summary>
+    /// <param name="_config">The provider configuration</param>
+    /// <returns>True if initialization was successful</returns>
+    boolean initialize(container _config);
+
+    /// <summary>
+    /// Logs out a client and invalidates their session.
+    /// </summary>
+    /// <param name="_credentials">The client credentials</param>
+    /// <returns>True if logout was successful</returns>
+    boolean logout(str _credentials);
+} 

@@ -1,0 +1,283 @@
+/// <summary>
+/// Configuration class for MCP server instances.
+/// Manages all server settings and enables runtime configuration updates.
+/// </summary>
+public class MCPServerConfig
+{
+    private str serverName;
+    private str serverVersion;
+    private int port;
+    private str bindAddress;
+    private int maxConnections;
+    private int connectionTimeoutSeconds;
+    private int requestTimeoutSeconds;
+    private boolean enableAuthentication;
+    private boolean enableLogging;
+    private MCPLoggingLevel loggingLevel;
+    private str logFilePath;
+    private boolean enableTls;
+    private str tlsCertificatePath;
+    private str tlsKeyPath;
+    private container customSettings;
+
+    /// <summary>
+    /// Initializes a new instance of MCPServerConfig with default values.
+    /// </summary>
+    public void new()
+    {
+        this.serverName = "D365-MCP-Server";
+        this.serverVersion = "1.0.0";
+        this.port = 8080;
+        this.bindAddress = "127.0.0.1";
+        this.maxConnections = 100;
+        this.connectionTimeoutSeconds = 300; // 5 minutes
+        this.requestTimeoutSeconds = 30;
+        this.enableAuthentication = false;
+        this.enableLogging = true;
+        this.loggingLevel = MCPLoggingLevel::Info;
+        this.logFilePath = "";
+        this.enableTls = false;
+        this.tlsCertificatePath = "";
+        this.tlsKeyPath = "";
+        this.customSettings = conNull();
+    }
+
+    /// <summary>
+    /// Gets the server name.
+    /// </summary>
+    /// <returns>The server name</returns>
+    public str parmServerName(str _serverName = "")
+    {
+        if (_serverName != "")
+        {
+            this.serverName = _serverName;
+        }
+        return this.serverName;
+    }
+
+    /// <summary>
+    /// Gets or sets the server version.
+    /// </summary>
+    /// <param name="_serverVersion">The server version to set</param>
+    /// <returns>The current server version</returns>
+    public str parmServerVersion(str _serverVersion = "")
+    {
+        if (_serverVersion != "")
+        {
+            this.serverVersion = _serverVersion;
+        }
+        return this.serverVersion;
+    }
+
+    /// <summary>
+    /// Gets or sets the server port.
+    /// </summary>
+    /// <param name="_port">The port to set</param>
+    /// <returns>The current port</returns>
+    public int parmPort(int _port = 0)
+    {
+        if (_port > 0)
+        {
+            this.port = _port;
+        }
+        return this.port;
+    }
+
+    /// <summary>
+    /// Gets or sets the bind address.
+    /// </summary>
+    /// <param name="_bindAddress">The bind address to set</param>
+    /// <returns>The current bind address</returns>
+    public str parmBindAddress(str _bindAddress = "")
+    {
+        if (_bindAddress != "")
+        {
+            this.bindAddress = _bindAddress;
+        }
+        return this.bindAddress;
+    }
+
+    /// <summary>
+    /// Gets or sets the maximum number of concurrent connections.
+    /// </summary>
+    /// <param name="_maxConnections">The maximum connections to set</param>
+    /// <returns>The current maximum connections</returns>
+    public int parmMaxConnections(int _maxConnections = 0)
+    {
+        if (_maxConnections > 0)
+        {
+            this.maxConnections = _maxConnections;
+        }
+        return this.maxConnections;
+    }
+
+    /// <summary>
+    /// Gets or sets the connection timeout in seconds.
+    /// </summary>
+    /// <param name="_timeoutSeconds">The timeout to set</param>
+    /// <returns>The current connection timeout</returns>
+    public int parmConnectionTimeoutSeconds(int _timeoutSeconds = 0)
+    {
+        if (_timeoutSeconds > 0)
+        {
+            this.connectionTimeoutSeconds = _timeoutSeconds;
+        }
+        return this.connectionTimeoutSeconds;
+    }
+
+    /// <summary>
+    /// Gets or sets the request timeout in seconds.
+    /// </summary>
+    /// <param name="_timeoutSeconds">The timeout to set</param>
+    /// <returns>The current request timeout</returns>
+    public int parmRequestTimeoutSeconds(int _timeoutSeconds = 0)
+    {
+        if (_timeoutSeconds > 0)
+        {
+            this.requestTimeoutSeconds = _timeoutSeconds;
+        }
+        return this.requestTimeoutSeconds;
+    }
+
+    /// <summary>
+    /// Gets or sets whether authentication is enabled.
+    /// </summary>
+    /// <param name="_enabled">The authentication setting</param>
+    /// <returns>The current authentication setting</returns>
+    public boolean parmEnableAuthentication(boolean _enabled = false)
+    {
+        if (_enabled)
+        {
+            this.enableAuthentication = _enabled;
+        }
+        return this.enableAuthentication;
+    }
+
+    /// <summary>
+    /// Gets or sets whether logging is enabled.
+    /// </summary>
+    /// <param name="_enabled">The logging setting</param>
+    /// <returns>The current logging setting</returns>
+    public boolean parmEnableLogging(boolean _enabled = false)
+    {
+        if (_enabled)
+        {
+            this.enableLogging = _enabled;
+        }
+        return this.enableLogging;
+    }
+
+    /// <summary>
+    /// Gets or sets the logging level.
+    /// </summary>
+    /// <param name="_level">The logging level to set</param>
+    /// <returns>The current logging level</returns>
+    public MCPLoggingLevel parmLoggingLevel(MCPLoggingLevel _level = MCPLoggingLevel::Info)
+    {
+        if (_level != MCPLoggingLevel::Info || _level == _level)
+        {
+            this.loggingLevel = _level;
+        }
+        return this.loggingLevel;
+    }
+
+    /// <summary>
+    /// Gets or sets whether TLS is enabled.
+    /// </summary>
+    /// <param name="_enabled">The TLS setting</param>
+    /// <returns>The current TLS setting</returns>
+    public boolean parmEnableTls(boolean _enabled = false)
+    {
+        if (_enabled)
+        {
+            this.enableTls = _enabled;
+        }
+        return this.enableTls;
+    }
+
+    /// <summary>
+    /// Gets or sets custom configuration settings.
+    /// </summary>
+    /// <param name="_settings">The custom settings to set</param>
+    /// <returns>The current custom settings</returns>
+    public container parmCustomSettings(container _settings = conNull())
+    {
+        if (_settings != conNull())
+        {
+            this.customSettings = _settings;
+        }
+        return this.customSettings;
+    }
+
+    /// <summary>
+    /// Validates the current configuration.
+    /// </summary>
+    /// <returns>True if configuration is valid</returns>
+    public boolean validate()
+    {
+        if (this.port <= 0 || this.port > 65535)
+        {
+            return false;
+        }
+        
+        if (this.maxConnections <= 0)
+        {
+            return false;
+        }
+        
+        if (this.connectionTimeoutSeconds <= 0)
+        {
+            return false;
+        }
+        
+        if (this.requestTimeoutSeconds <= 0)
+        {
+            return false;
+        }
+        
+        if (this.bindAddress == "")
+        {
+            return false;
+        }
+        
+        if (this.enableTls && (this.tlsCertificatePath == "" || this.tlsKeyPath == ""))
+        {
+            return false;
+        }
+        
+        return true;
+    }
+
+    /// <summary>
+    /// Creates a default configuration for development.
+    /// </summary>
+    /// <returns>A new MCPServerConfig with development settings</returns>
+    public static MCPServerConfig createDevelopmentConfig()
+    {
+        MCPServerConfig config = new MCPServerConfig();
+        config.parmPort(8080);
+        config.parmBindAddress("127.0.0.1");
+        config.parmMaxConnections(10);
+        config.parmEnableAuthentication(false);
+        config.parmEnableLogging(true);
+        config.parmLoggingLevel(MCPLoggingLevel::Debug);
+        return config;
+    }
+
+    /// <summary>
+    /// Creates a default configuration for production.
+    /// </summary>
+    /// <returns>A new MCPServerConfig with production settings</returns>
+    public static MCPServerConfig createProductionConfig()
+    {
+        MCPServerConfig config = new MCPServerConfig();
+        config.parmPort(443);
+        config.parmBindAddress("0.0.0.0");
+        config.parmMaxConnections(1000);
+        config.parmEnableAuthentication(true);
+        config.parmEnableLogging(true);
+        config.parmLoggingLevel(MCPLoggingLevel::Warning);
+        config.parmEnableTls(true);
+        return config;
+    }
+} 

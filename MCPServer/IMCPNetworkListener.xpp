@@ -1,0 +1,73 @@
+/// <summary>
+/// Interface for network listeners that handle client connections.
+/// Abstracts the transport layer to enable different communication protocols.
+/// </summary>
+interface IMCPNetworkListener
+{
+    /// <summary>
+    /// Starts listening for client connections.
+    /// </summary>
+    /// <returns>True if listener started successfully</returns>
+    boolean start();
+
+    /// <summary>
+    /// Stops listening and closes all connections.
+    /// </summary>
+    /// <returns>True if listener stopped successfully</returns>
+    boolean stop();
+
+    /// <summary>
+    /// Gets the current status of the listener.
+    /// </summary>
+    /// <returns>True if listener is active</returns>
+    boolean isListening();
+
+    /// <summary>
+    /// Gets the port the listener is bound to.
+    /// </summary>
+    /// <returns>The listener port</returns>
+    int getPort();
+
+    /// <summary>
+    /// Gets the address the listener is bound to.
+    /// </summary>
+    /// <returns>The listener address</returns>
+    str getBindAddress();
+
+    /// <summary>
+    /// Sets the connection handler for processing new client connections.
+    /// </summary>
+    /// <param name="_handler">The connection handler</param>
+    void setConnectionHandler(IMCPConnectionHandler _handler);
+
+    /// <summary>
+    /// Gets the number of active connections.
+    /// </summary>
+    /// <returns>Number of active connections</returns>
+    int getActiveConnectionCount();
+
+    /// <summary>
+    /// Gets the maximum number of allowed connections.
+    /// </summary>
+    /// <returns>Maximum connections allowed</returns>
+    int getMaxConnections();
+
+    /// <summary>
+    /// Sets the maximum number of allowed connections.
+    /// </summary>
+    /// <param name="_maxConnections">The maximum connections to allow</param>
+    void setMaxConnections(int _maxConnections);
+
+    /// <summary>
+    /// Gets the listener configuration.
+    /// </summary>
+    /// <returns>The listener configuration</returns>
+    container getConfiguration();
+
+    /// <summary>
+    /// Updates the listener configuration.
+    /// </summary>
+    /// <param name="_config">The new configuration</param>
+    /// <returns>True if configuration was updated successfully</returns>
+    boolean updateConfiguration(container _config);
+} 
