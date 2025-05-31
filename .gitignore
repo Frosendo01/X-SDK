@@ -1,0 +1,43 @@
+# D365 Finance & Operations X++ specific ignores
+
+# Build outputs
+bin/
+obj/
+*.log
+
+# Visual Studio temp files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# X++ compiler outputs
+*.netmodule
+*.dlabel
+*.resources
+
+# AOS debug files
+*.pdb
+*.xppc
+
+# Dynamics 365 specific
+PackagesLocalDirectory/
+CrossReference.db
+CrossReference.db-*
+
+# Model build artifacts
+*.dll.config
+ModelManifest.xml
+*.tlog
+
+# OS specific
+Thumbs.db
+.DS_Store
+*.tmp
+*.temp
+
+# IDE specific
+*.swp
+*.swo
+*~ 
