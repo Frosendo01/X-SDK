@@ -1,0 +1,242 @@
+/// <summary>
+/// HTTP client helper for Model Context Protocol communication.
+/// Uses System.Net classes for HTTP operations.
+/// </summary>
+public final class MCPHttpClient
+{
+    private str baseUrl;
+    private int timeoutMs;
+    private container headers;
+
+    /// <summary>
+    /// Initializes a new instance of the MCPHttpClient class.
+    /// </summary>
+    /// <param name="_baseUrl">The base URL for the MCP server</param>
+    /// <param name="_timeoutMs">Timeout in milliseconds (default: 30000)</param>
+    public void new(str _baseUrl, int _timeoutMs = 30000)
+    {
+        this.baseUrl = _baseUrl;
+        this.timeoutMs = _timeoutMs;
+        this.headers = conNull();
+    }
+
+    /// <summary>
+    /// Adds a header to be included in all requests.
+    /// </summary>
+    /// <param name="_name">Header name</param>
+    /// <param name="_value">Header value</param>
+    public void addHeader(str _name, str _value)
+    {
+        headers = conIns(headers, conLen(headers) + 1, [_name, _value]);
+    }
+
+    /// <summary>
+    /// Sends a POST request with JSON content.
+    /// </summary>
+    /// <param name="_endpoint">The endpoint path (relative to base URL)</param>
+    /// <param name="_jsonContent">The JSON content to send</param>
+    /// <returns>The response as a string</returns>
+    [SysEntryPoint]
+    public str postJson(str _endpoint, str _jsonContent)
+    {
+        str fullUrl = baseUrl + _endpoint;
+        str responseText = "";
+        
+        try
+        {
+            // Create HTTP request
+            System.Net.HttpWebRequest request = System.Net.WebRequest::CreateHttp(fullUrl);
+            request.set_Method("POST");
+            request.set_ContentType("application/json");
+            request.set_Timeout(timeoutMs);
+            
+            // Add custom headers
+            this.addHeadersToRequest(request);
+            
+            // Write JSON content to request stream
+            if (_jsonContent)
+            {
+                System.Text.Encoding encoding = System.Text.Encoding::get_UTF8();
+                System.Byte[] contentBytes = encoding.GetBytes(_jsonContent);
+                
+                request.set_ContentLength(contentBytes.get_Length());
+                
+                System.IO.Stream requestStream = request.GetRequestStream();
+                requestStream.Write(contentBytes, 0, contentBytes.get_Length());
+                requestStream.Close();
+            }
+            
+            // Get response
+            System.Net.HttpWebResponse response = request.GetResponse();
+            System.IO.Stream responseStream = response.GetResponseStream();
+            System.IO.StreamReader reader = new System.IO.StreamReader(responseStream);
+            responseText = reader.ReadToEnd();
+            
+            // Clean up
+            reader.Close();
+            responseStream.Close();
+            response.Close();
+        }
+        catch (Exception::CLRError)
+        {
+            System.Exception clrException = ClrInterop::getLastException();
+            if (clrException)
+            {
+                // Check if it's a WebException for HTTP errors
+                System.Net.WebException webEx = clrException as System.Net.WebException;
+                if (webEx)
+                {
+                    System.Net.HttpWebResponse errorResponse = webEx.get_Response() as System.Net.HttpWebResponse;
+                    if (errorResponse)
+                    {
+                        int statusCode = errorResponse.get_StatusCode();
+                        throw MCPException::createInternalError(strFmt("HTTP request failed with status %1: %2", statusCode, webEx.get_Message()));
+                    }
+                }
+                throw MCPException::createInternalError(strFmt("HTTP request failed: %1", clrException.get_Message()));
+            }
+            else
+            {
+                throw MCPException::createInternalError("HTTP request failed with unknown CLR error");
+            }
+        }
+        catch (Exception::Error)
+        {
+            throw MCPException::createInternalError("HTTP request failed");
+        }
+        
+        return responseText;
+    }
+
+    /// <summary>
+    /// Sends a GET request.
+    /// </summary>
+    /// <param name="_endpoint">The endpoint path (relative to base URL)</param>
+    /// <returns>The response as a string</returns>
+    [SysEntryPoint]
+    public str get(str _endpoint)
+    {
+        str fullUrl = baseUrl + _endpoint;
+        str responseText = "";
+        
+        try
+        {
+            // Create HTTP request
+            System.Net.HttpWebRequest request = System.Net.WebRequest::CreateHttp(fullUrl);
+            request.set_Method("GET");
+            request.set_Timeout(timeoutMs);
+            
+            // Add custom headers
+            this.addHeadersToRequest(request);
+            
+            // Get response
+            System.Net.HttpWebResponse response = request.GetResponse();
+            System.IO.Stream responseStream = response.GetResponseStream();
+            System.IO.StreamReader reader = new System.IO.StreamReader(responseStream);
+            responseText = reader.ReadToEnd();
+            
+            // Clean up
+            reader.Close();
+            responseStream.Close();
+            response.Close();
+        }
+        catch (Exception::CLRError)
+        {
+            System.Exception clrException = ClrInterop::getLastException();
+            if (clrException)
+            {
+                System.Net.WebException webEx = clrException as System.Net.WebException;
+                if (webEx)
+                {
+                    System.Net.HttpWebResponse errorResponse = webEx.get_Response() as System.Net.HttpWebResponse;
+                    if (errorResponse)
+                    {
+                        int statusCode = errorResponse.get_StatusCode();
+                        throw MCPException::createInternalError(strFmt("HTTP GET failed with status %1: %2", statusCode, webEx.get_Message()));
+                    }
+                }
+                throw MCPException::createInternalError(strFmt("HTTP GET failed: %1", clrException.get_Message()));
+            }
+            else
+            {
+                throw MCPException::createInternalError("HTTP GET failed with unknown CLR error");
+            }
+        }
+        catch (Exception::Error)
+        {
+            throw MCPException::createInternalError("HTTP GET failed");
+        }
+        
+        return responseText;
+    }
+
+    /// <summary>
+    /// Adds headers to the HTTP request.
+    /// </summary>
+    /// <param name="_request">The HTTP request object</param>
+    private void addHeadersToRequest(System.Net.HttpWebRequest _request)
+    {
+        int i;
+        
+        for (i = 1; i <= conLen(headers); i += 2)
+        {
+            if (i + 1 <= conLen(headers))
+            {
+                str headerName = conPeek(headers, i);
+                str headerValue = conPeek(headers, i + 1);
+                
+                // Some headers need special handling
+                switch (headerName)
+                {
+                    case "Authorization":
+                        System.Net.WebHeaderCollection requestHeaders = _request.get_Headers();
+                        requestHeaders.Add("Authorization", headerValue);
+                        break;
+                    case "User-Agent":
+                        _request.set_UserAgent(headerValue);
+                        break;
+                    default:
+                        System.Net.WebHeaderCollection requestHeaders = _request.get_Headers();
+                        requestHeaders.Add(headerName, headerValue);
+                        break;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sets the base URL for the client.
+    /// </summary>
+    /// <param name="_baseUrl">The new base URL</param>
+    public void setBaseUrl(str _baseUrl)
+    {
+        baseUrl = _baseUrl;
+    }
+
+    /// <summary>
+    /// Gets the current base URL.
+    /// </summary>
+    /// <returns>The current base URL</returns>
+    public str getBaseUrl()
+    {
+        return baseUrl;
+    }
+
+    /// <summary>
+    /// Sets the timeout for requests.
+    /// </summary>
+    /// <param name="_timeoutMs">Timeout in milliseconds</param>
+    public void setTimeout(int _timeoutMs)
+    {
+        timeoutMs = _timeoutMs;
+    }
+
+    /// <summary>
+    /// Gets the current timeout setting.
+    /// </summary>
+    /// <returns>Timeout in milliseconds</returns>
+    public int getTimeout()
+    {
+        return timeoutMs;
+    }
+} 

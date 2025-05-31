@@ -1,0 +1,245 @@
+/// <summary>
+/// Helper class for JSON serialization and deserialization in the Model Context Protocol.
+/// Uses .NET System.Text.Json for JSON operations.
+/// </summary>
+public final class MCPJsonHelper
+{
+    /// <summary>
+    /// Serializes an X++ data contract object to JSON string.
+    /// </summary>
+    /// <param name="_object">The object to serialize</param>
+    /// <returns>JSON string representation</returns>
+    public static str serializeObject(Object _object)
+    {
+        str jsonResult = "";
+        
+        try
+        {
+            // Use .NET JSON serialization
+            System.Text.Json.JsonSerializer jsonSerializer = new System.Text.Json.JsonSerializer();
+            jsonResult = jsonSerializer.Serialize(_object);
+        }
+        catch (Exception::CLRError)
+        {
+            // Handle CLR exceptions
+            System.Exception clrException = ClrInterop::getLastException();
+            if (clrException)
+            {
+                throw error(strFmt("JSON serialization failed: %1", clrException.get_Message()));
+            }
+            else
+            {
+                throw error("JSON serialization failed with unknown CLR error");
+            }
+        }
+        catch (Exception::Error)
+        {
+            throw error("JSON serialization failed");
+        }
+        
+        return jsonResult;
+    }
+
+    /// <summary>
+    /// Deserializes a JSON string to create an MCPJsonRpcRequest object.
+    /// </summary>
+    /// <param name="_jsonString">The JSON string to deserialize</param>
+    /// <returns>MCPJsonRpcRequest object</returns>
+    public static MCPJsonRpcRequest deserializeRequest(str _jsonString)
+    {
+        MCPJsonRpcRequest request = new MCPJsonRpcRequest();
+        
+        if (!_jsonString)
+        {
+            throw MCPException::createParseError("JSON string is empty");
+        }
+        
+        try
+        {
+            // Simple JSON parsing for basic request structure
+            // In a full implementation, you would use System.Text.Json.JsonDocument
+            str jsonrpc = MCPJsonHelper::extractJsonValue(_jsonString, "jsonrpc");
+            str method = MCPJsonHelper::extractJsonValue(_jsonString, "method");
+            str id = MCPJsonHelper::extractJsonValue(_jsonString, "id");
+            str params = MCPJsonHelper::extractJsonObject(_jsonString, "params");
+            
+            request.parmJsonrpc(jsonrpc);
+            request.parmMethod(method);
+            request.parmId(id);
+            if (params)
+            {
+                request.parmParams(params);
+            }
+        }
+        catch (Exception::Error)
+        {
+            throw MCPException::createParseError("Failed to parse JSON request");
+        }
+        
+        return request;
+    }
+
+    /// <summary>
+    /// Deserializes a JSON string to create an MCPJsonRpcResponse object.
+    /// </summary>
+    /// <param name="_jsonString">The JSON string to deserialize</param>
+    /// <returns>MCPJsonRpcResponse object</returns>
+    public static MCPJsonRpcResponse deserializeResponse(str _jsonString)
+    {
+        MCPJsonRpcResponse response = new MCPJsonRpcResponse();
+        
+        if (!_jsonString)
+        {
+            throw MCPException::createParseError("JSON string is empty");
+        }
+        
+        try
+        {
+            str jsonrpc = MCPJsonHelper::extractJsonValue(_jsonString, "jsonrpc");
+            str id = MCPJsonHelper::extractJsonValue(_jsonString, "id");
+            str result = MCPJsonHelper::extractJsonObject(_jsonString, "result");
+            str errorObj = MCPJsonHelper::extractJsonObject(_jsonString, "error");
+            
+            response.parmJsonrpc(jsonrpc);
+            response.parmId(id);
+            
+            if (errorObj)
+            {
+                // Parse error object
+                str errorMessage = MCPJsonHelper::extractJsonValue(errorObj, "message");
+                str errorCodeStr = MCPJsonHelper::extractJsonValue(errorObj, "code");
+                int errorCode = str2Int(errorCodeStr);
+                
+                response.parmHasError(true);
+                response.parmErrorMessage(errorMessage);
+                response.parmErrorCode(errorCode);
+            }
+            else if (result)
+            {
+                response.parmResult(result);
+                response.parmHasError(false);
+            }
+        }
+        catch (Exception::Error)
+        {
+            throw MCPException::createParseError("Failed to parse JSON response");
+        }
+        
+        return response;
+    }
+
+    /// <summary>
+    /// Extracts a simple string value from JSON.
+    /// This is a simplified implementation - in production, use proper JSON parsing.
+    /// </summary>
+    /// <param name="_jsonString">The JSON string</param>
+    /// <param name="_key">The key to extract</param>
+    /// <returns>The extracted value</returns>
+    private static str extractJsonValue(str _jsonString, str _key)
+    {
+        str searchPattern = strFmt('"%1":"', _key);
+        int startPos = strScan(_jsonString, searchPattern, 1, strLen(_jsonString));
+        
+        if (startPos > 0)
+        {
+            startPos += strLen(searchPattern);
+            int endPos = strScan(_jsonString, '"', startPos, strLen(_jsonString));
+            
+            if (endPos > startPos)
+            {
+                return subStr(_jsonString, startPos, endPos - startPos);
+            }
+        }
+        
+        return "";
+    }
+
+    /// <summary>
+    /// Extracts a JSON object as a string.
+    /// This is a simplified implementation - in production, use proper JSON parsing.
+    /// </summary>
+    /// <param name="_jsonString">The JSON string</param>
+    /// <param name="_key">The key to extract</param>
+    /// <returns>The extracted object as JSON string</returns>
+    private static str extractJsonObject(str _jsonString, str _key)
+    {
+        str searchPattern = strFmt('"%1":', _key);
+        int startPos = strScan(_jsonString, searchPattern, 1, strLen(_jsonString));
+        
+        if (startPos > 0)
+        {
+            startPos += strLen(searchPattern);
+            
+            // Skip whitespace
+            while (startPos <= strLen(_jsonString) && (subStr(_jsonString, startPos, 1) == " " || subStr(_jsonString, startPos, 1) == "\t"))
+            {
+                startPos++;
+            }
+            
+            if (startPos <= strLen(_jsonString))
+            {
+                str firstChar = subStr(_jsonString, startPos, 1);
+                
+                if (firstChar == "{")
+                {
+                    // Find matching closing brace
+                    int braceCount = 1;
+                    int pos = startPos + 1;
+                    
+                    while (pos <= strLen(_jsonString) && braceCount > 0)
+                    {
+                        str currentChar = subStr(_jsonString, pos, 1);
+                        if (currentChar == "{")
+                        {
+                            braceCount++;
+                        }
+                        else if (currentChar == "}")
+                        {
+                            braceCount--;
+                        }
+                        pos++;
+                    }
+                    
+                    if (braceCount == 0)
+                    {
+                        return subStr(_jsonString, startPos, pos - startPos);
+                    }
+                }
+            }
+        }
+        
+        return "";
+    }
+
+    /// <summary>
+    /// Creates a simple JSON object string from key-value pairs.
+    /// </summary>
+    /// <param name="_keyValuePairs">Container of key-value pairs</param>
+    /// <returns>JSON object string</returns>
+    public static str createJsonObject(container _keyValuePairs)
+    {
+        str jsonResult = "{";
+        int i;
+        boolean first = true;
+        
+        for (i = 1; i <= conLen(_keyValuePairs); i += 2)
+        {
+            if (i + 1 <= conLen(_keyValuePairs))
+            {
+                if (!first)
+                {
+                    jsonResult += ",";
+                }
+                
+                str key = conPeek(_keyValuePairs, i);
+                str value = conPeek(_keyValuePairs, i + 1);
+                
+                jsonResult += strFmt('"%1":"%2"', key, value);
+                first = false;
+            }
+        }
+        
+        jsonResult += "}";
+        return jsonResult;
+    }
+} 

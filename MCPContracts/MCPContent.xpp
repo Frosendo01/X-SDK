@@ -1,0 +1,92 @@
+/// <summary>
+/// Represents content within the Model Context Protocol (MCP) that can contain text, binary data, or references to resources.
+/// Corresponds to C# SDK Content.cs
+/// </summary>
+[DataContractAttribute]
+public class MCPContent
+{
+    private str contentType;
+    private str text;
+    private str data;
+    private str mimeType;
+    
+    /// <summary>
+    /// Initializes a new instance of the MCPContent class.
+    /// </summary>
+    public void new()
+    {
+        super();
+        this.contentType = "text"; // Default to text type
+    }
+
+    /// <summary>
+    /// Gets or sets the type of content.
+    /// Valid values include "image", "audio", "text", and "resource".
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmType(str _type = contentType)
+    {
+        contentType = _type;
+        return contentType;
+    }
+
+    /// <summary>
+    /// Gets or sets the text content of the message.
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmText(str _text = text)
+    {
+        text = _text;
+        return text;
+    }
+
+    /// <summary>
+    /// Gets or sets the base64-encoded image or audio data.
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmData(str _data = data)
+    {
+        data = _data;
+        return data;
+    }
+
+    /// <summary>
+    /// Gets or sets the MIME type (or "media type") of the content, specifying the format of the data.
+    /// This property is used when Type is "image", "audio", or "resource".
+    /// Common values include "image/png", "image/jpeg", "audio/wav", and "audio/mp3".
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmMimeType(str _mimeType = mimeType)
+    {
+        mimeType = _mimeType;
+        return mimeType;
+    }
+
+    /// <summary>
+    /// Creates a text content instance.
+    /// </summary>
+    /// <param name="_text">The text content</param>
+    /// <returns>A new MCPContent instance with text content</returns>
+    public static MCPContent createTextContent(str _text)
+    {
+        MCPContent content = new MCPContent();
+        content.parmType("text");
+        content.parmText(_text);
+        return content;
+    }
+
+    /// <summary>
+    /// Creates an image content instance.
+    /// </summary>
+    /// <param name="_data">The base64-encoded image data</param>
+    /// <param name="_mimeType">The MIME type (e.g., "image/png")</param>
+    /// <returns>A new MCPContent instance with image content</returns>
+    public static MCPContent createImageContent(str _data, str _mimeType)
+    {
+        MCPContent content = new MCPContent();
+        content.parmType("image");
+        content.parmData(_data);
+        content.parmMimeType(_mimeType);
+        return content;
+    }
+} 

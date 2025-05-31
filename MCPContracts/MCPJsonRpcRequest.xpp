@@ -1,0 +1,80 @@
+/// <summary>
+/// Represents a JSON-RPC request message in the Model Context Protocol.
+/// Corresponds to C# SDK JsonRpcRequest.cs
+/// </summary>
+[DataContractAttribute]
+public class MCPJsonRpcRequest
+{
+    private str jsonrpc;
+    private str method;
+    private str id;
+    private str params;
+    
+    /// <summary>
+    /// Initializes a new instance of the MCPJsonRpcRequest class.
+    /// </summary>
+    public void new()
+    {
+        super();
+        this.jsonrpc = "2.0"; // JSON-RPC version
+    }
+
+    /// <summary>
+    /// Gets or sets the JSON-RPC version. Should always be "2.0".
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmJsonrpc(str _jsonrpc = jsonrpc)
+    {
+        jsonrpc = _jsonrpc;
+        return jsonrpc;
+    }
+
+    /// <summary>
+    /// Gets or sets the method name to be invoked.
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmMethod(str _method = method)
+    {
+        method = _method;
+        return method;
+    }
+
+    /// <summary>
+    /// Gets or sets the request identifier. Can be a string or number.
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmId(str _id = id)
+    {
+        id = _id;
+        return id;
+    }
+
+    /// <summary>
+    /// Gets or sets the parameters for the method call as a JSON string.
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmParams(str _params = params)
+    {
+        params = _params;
+        return params;
+    }
+
+    /// <summary>
+    /// Creates a new JSON-RPC request.
+    /// </summary>
+    /// <param name="_method">The method name</param>
+    /// <param name="_id">The request ID</param>
+    /// <param name="_params">The parameters as JSON string</param>
+    /// <returns>A new MCPJsonRpcRequest instance</returns>
+    public static MCPJsonRpcRequest createRequest(str _method, str _id, str _params = "")
+    {
+        MCPJsonRpcRequest request = new MCPJsonRpcRequest();
+        request.parmMethod(_method);
+        request.parmId(_id);
+        if (_params)
+        {
+            request.parmParams(_params);
+        }
+        return request;
+    }
+} 

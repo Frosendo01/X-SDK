@@ -1,0 +1,98 @@
+/// <summary>
+/// Represents an exception that is thrown when a Model Context Protocol (MCP) error occurs.
+/// Corresponds to C# SDK McpException.cs
+/// </summary>
+public class MCPException extends Exception
+{
+    private MCPErrorCode errorCode;
+    private str errorMessage;
+
+    /// <summary>
+    /// Initializes a new instance of the MCPException class.
+    /// </summary>
+    /// <param name="_message">The error message</param>
+    /// <param name="_errorCode">The MCP error code</param>
+    public void new(str _message = "", MCPErrorCode _errorCode = MCPErrorCode::InternalError)
+    {
+        super();
+        this.errorMessage = _message;
+        this.errorCode = _errorCode;
+    }
+
+    /// <summary>
+    /// Gets the error code associated with this exception.
+    /// </summary>
+    /// <returns>The MCPErrorCode</returns>
+    public MCPErrorCode getErrorCode()
+    {
+        return errorCode;
+    }
+
+    /// <summary>
+    /// Gets the error message.
+    /// </summary>
+    /// <returns>The error message</returns>
+    public str getErrorMessage()
+    {
+        return errorMessage;
+    }
+
+    /// <summary>
+    /// Gets the JSON-RPC error code integer.
+    /// </summary>
+    /// <returns>The JSON-RPC error code</returns>
+    public int getJsonRpcErrorCode()
+    {
+        return MCPErrorCodeHelper::toJsonRpcCode(errorCode);
+    }
+
+    /// <summary>
+    /// Creates a parse error exception.
+    /// </summary>
+    /// <param name="_message">The error message</param>
+    /// <returns>A new MCPException instance</returns>
+    public static MCPException createParseError(str _message)
+    {
+        return new MCPException(_message, MCPErrorCode::ParseError);
+    }
+
+    /// <summary>
+    /// Creates an invalid request exception.
+    /// </summary>
+    /// <param name="_message">The error message</param>
+    /// <returns>A new MCPException instance</returns>
+    public static MCPException createInvalidRequest(str _message)
+    {
+        return new MCPException(_message, MCPErrorCode::InvalidRequest);
+    }
+
+    /// <summary>
+    /// Creates a method not found exception.
+    /// </summary>
+    /// <param name="_message">The error message</param>
+    /// <returns>A new MCPException instance</returns>
+    public static MCPException createMethodNotFound(str _message)
+    {
+        return new MCPException(_message, MCPErrorCode::MethodNotFound);
+    }
+
+    /// <summary>
+    /// Creates an invalid params exception.
+    /// </summary>
+    /// <param name="_message">The error message</param>
+    /// <returns>A new MCPException instance</returns>
+    public static MCPException createInvalidParams(str _message)
+    {
+        return new MCPException(_message, MCPErrorCode::InvalidParams);
+    }
+
+    /// <summary>
+    /// Creates an internal error exception.
+    /// </summary>
+    /// <param name="_message">The error message</param>
+    /// <returns>A new MCPException instance</returns>
+    public static MCPException createInternalError(str _message)
+    {
+        return new MCPException(_message, MCPErrorCode::InternalError);
+    }
+} 

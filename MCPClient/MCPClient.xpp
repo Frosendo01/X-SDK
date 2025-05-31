@@ -1,0 +1,271 @@
+/// <summary>
+/// Main client class for Model Context Protocol communication.
+/// Corresponds to C# SDK McpClient.cs
+/// </summary>
+public class MCPClient
+{
+    private MCPHttpClient httpClient;
+    private str serverUrl;
+    private int requestIdCounter;
+    private boolean isInitialized;
+
+    /// <summary>
+    /// Initializes a new instance of the MCPClient class.
+    /// </summary>
+    /// <param name="_serverUrl">The URL of the MCP server</param>
+    public void new(str _serverUrl)
+    {
+        this.serverUrl = _serverUrl;
+        this.httpClient = new MCPHttpClient(_serverUrl);
+        this.requestIdCounter = 0;
+        this.isInitialized = false;
+        
+        // Set default headers
+        this.httpClient.addHeader("User-Agent", "D365-MCP-Client/1.0");
+        this.httpClient.addHeader("Accept", "application/json");
+    }
+
+    /// <summary>
+    /// Initializes the connection to the MCP server.
+    /// </summary>
+    /// <returns>True if initialization was successful</returns>
+    [SysEntryPoint]
+    public boolean initialize()
+    {
+        try
+        {
+            // Create initialize request
+            str requestId = this.generateRequestId();
+            container initParams = ["protocolVersion", "2024-11-05", "clientInfo", '{"name":"D365-MCP-Client","version":"1.0"}'];
+            str paramsJson = MCPJsonHelper::createJsonObject(initParams);
+            
+            MCPJsonRpcRequest request = MCPJsonRpcRequest::createRequest("initialize", requestId, paramsJson);
+            str requestJson = this.serializeRequest(request);
+            
+            // Send request
+            str responseJson = httpClient.postJson("/mcp", requestJson);
+            MCPJsonRpcResponse response = MCPJsonHelper::deserializeResponse(responseJson);
+            
+            if (response.parmHasError())
+            {
+                throw MCPException::createInternalError(strFmt("Initialize failed: %1", response.parmErrorMessage()));
+            }
+            
+            this.isInitialized = true;
+            info("MCP Client initialized successfully");
+            return true;
+        }
+        catch (Exception::Error)
+        {
+            error("Failed to initialize MCP client");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Lists all available tools from the server.
+    /// </summary>
+    /// <returns>Container of MCPTool objects</returns>
+    [SysEntryPoint]
+    public container listTools()
+    {
+        if (!isInitialized)
+        {
+            throw MCPException::createInvalidRequest("Client not initialized. Call initialize() first.");
+        }
+        
+        container tools = conNull();
+        
+        try
+        {
+            str requestId = this.generateRequestId();
+            MCPJsonRpcRequest request = MCPJsonRpcRequest::createRequest("tools/list", requestId, "{}");
+            str requestJson = this.serializeRequest(request);
+            
+            str responseJson = httpClient.postJson("/mcp", requestJson);
+            MCPJsonRpcResponse response = MCPJsonHelper::deserializeResponse(responseJson);
+            
+            if (response.parmHasError())
+            {
+                throw MCPException::createInternalError(strFmt("List tools failed: %1", response.parmErrorMessage()));
+            }
+            
+            // Parse tools from response (simplified - in production, use proper JSON parsing)
+            str resultJson = response.parmResult();
+            tools = this.parseToolsFromJson(resultJson);
+            
+            info(strFmt("Retrieved %1 tools from MCP server", conLen(tools)));
+        }
+        catch (Exception::Error)
+        {
+            error("Failed to list tools from MCP server");
+        }
+        
+        return tools;
+    }
+
+    /// <summary>
+    /// Calls a tool on the server.
+    /// </summary>
+    /// <param name="_toolName">The name of the tool to call</param>
+    /// <param name="_arguments">The arguments as a container of key-value pairs</param>
+    /// <returns>The tool response as MCPContent</returns>
+    [SysEntryPoint]
+    public MCPContent callTool(str _toolName, container _arguments)
+    {
+        if (!isInitialized)
+        {
+            throw MCPException::createInvalidRequest("Client not initialized. Call initialize() first.");
+        }
+        
+        MCPContent result = new MCPContent();
+        
+        try
+        {
+            str requestId = this.generateRequestId();
+            
+            // Build parameters JSON
+            str argumentsJson = MCPJsonHelper::createJsonObject(_arguments);
+            container toolParams = ["name", _toolName, "arguments", argumentsJson];
+            str paramsJson = MCPJsonHelper::createJsonObject(toolParams);
+            
+            MCPJsonRpcRequest request = MCPJsonRpcRequest::createRequest("tools/call", requestId, paramsJson);
+            str requestJson = this.serializeRequest(request);
+            
+            str responseJson = httpClient.postJson("/mcp", requestJson);
+            MCPJsonRpcResponse response = MCPJsonHelper::deserializeResponse(responseJson);
+            
+            if (response.parmHasError())
+            {
+                throw MCPException::createInternalError(strFmt("Tool call failed: %1", response.parmErrorMessage()));
+            }
+            
+            // Parse content from response
+            str resultJson = response.parmResult();
+            result = this.parseContentFromJson(resultJson);
+            
+            info(strFmt("Successfully called tool: %1", _toolName));
+        }
+        catch (Exception::Error)
+        {
+            error(strFmt("Failed to call tool: %1", _toolName));
+            result = MCPContent::createTextContent(strFmt("Error calling tool %1", _toolName));
+        }
+        
+        return result;
+    }
+
+    /// <summary>
+    /// Pings the server to check connectivity.
+    /// </summary>
+    /// <returns>True if server responds</returns>
+    [SysEntryPoint]
+    public boolean ping()
+    {
+        try
+        {
+            str requestId = this.generateRequestId();
+            MCPJsonRpcRequest request = MCPJsonRpcRequest::createRequest("ping", requestId, "{}");
+            str requestJson = this.serializeRequest(request);
+            
+            str responseJson = httpClient.postJson("/mcp", requestJson);
+            MCPJsonRpcResponse response = MCPJsonHelper::deserializeResponse(responseJson);
+            
+            return !response.parmHasError();
+        }
+        catch (Exception::Error)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Generates a unique request ID.
+    /// </summary>
+    /// <returns>A unique request ID string</returns>
+    private str generateRequestId()
+    {
+        requestIdCounter++;
+        return strFmt("req_%1_%2", requestIdCounter, DateTimeUtil::getSystemDateTime());
+    }
+
+    /// <summary>
+    /// Serializes a request object to JSON.
+    /// </summary>
+    /// <param name="_request">The request to serialize</param>
+    /// <returns>JSON string</returns>
+    private str serializeRequest(MCPJsonRpcRequest _request)
+    {
+        // Simple JSON construction for request
+        container requestData = [
+            "jsonrpc", _request.parmJsonrpc(),
+            "method", _request.parmMethod(),
+            "id", _request.parmId()
+        ];
+        
+        if (_request.parmParams())
+        {
+            requestData = conIns(requestData, conLen(requestData) + 1, ["params", _request.parmParams()]);
+        }
+        
+        return MCPJsonHelper::createJsonObject(requestData);
+    }
+
+    /// <summary>
+    /// Parses tools from JSON response.
+    /// This is a simplified implementation.
+    /// </summary>
+    /// <param name="_jsonString">The JSON string containing tools</param>
+    /// <returns>Container of MCPTool objects</returns>
+    private container parseToolsFromJson(str _jsonString)
+    {
+        container tools = conNull();
+        
+        // Simplified parsing - in production, use proper JSON parsing
+        // For now, create a sample tool
+        MCPTool sampleTool = MCPTool::createSimpleTool("echo", "Echoes the input message");
+        tools = conIns(tools, 1, sampleTool);
+        
+        return tools;
+    }
+
+    /// <summary>
+    /// Parses content from JSON response.
+    /// This is a simplified implementation.
+    /// </summary>
+    /// <param name="_jsonString">The JSON string containing content</param>
+    /// <returns>MCPContent object</returns>
+    private MCPContent parseContentFromJson(str _jsonString)
+    {
+        // Simplified parsing - in production, use proper JSON parsing
+        // For now, return the JSON as text content
+        return MCPContent::createTextContent(_jsonString);
+    }
+
+    /// <summary>
+    /// Gets the server URL.
+    /// </summary>
+    /// <returns>The server URL</returns>
+    public str getServerUrl()
+    {
+        return serverUrl;
+    }
+
+    /// <summary>
+    /// Checks if the client is initialized.
+    /// </summary>
+    /// <returns>True if initialized</returns>
+    public boolean getIsInitialized()
+    {
+        return isInitialized;
+    }
+
+    /// <summary>
+    /// Sets authentication header for the client.
+    /// </summary>
+    /// <param name="_authToken">The authentication token</param>
+    public void setAuthToken(str _authToken)
+    {
+        httpClient.addHeader("Authorization", strFmt("Bearer %1", _authToken));
+    }
+} 

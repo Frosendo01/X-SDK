@@ -1,0 +1,54 @@
+/// <summary>
+/// Helper class for converting between MCPErrorCode enum values and actual JSON-RPC error codes.
+/// Since X++ enums cannot have negative values, this class provides the mapping.
+/// </summary>
+public final class MCPErrorCodeHelper
+{
+    /// <summary>
+    /// Converts an MCPErrorCode enum value to its corresponding JSON-RPC error code integer.
+    /// </summary>
+    /// <param name="_errorCode">The MCPErrorCode enum value</param>
+    /// <returns>The corresponding JSON-RPC error code integer</returns>
+    public static int toJsonRpcCode(MCPErrorCode _errorCode)
+    {
+        switch (_errorCode)
+        {
+            case MCPErrorCode::ParseError:
+                return -32700;
+            case MCPErrorCode::InvalidRequest:
+                return -32600;
+            case MCPErrorCode::MethodNotFound:
+                return -32601;
+            case MCPErrorCode::InvalidParams:
+                return -32602;
+            case MCPErrorCode::InternalError:
+                return -32603;
+            default:
+                return -32603; // Default to InternalError
+        }
+    }
+
+    /// <summary>
+    /// Converts a JSON-RPC error code integer to its corresponding MCPErrorCode enum value.
+    /// </summary>
+    /// <param name="_jsonRpcCode">The JSON-RPC error code integer</param>
+    /// <returns>The corresponding MCPErrorCode enum value</returns>
+    public static MCPErrorCode fromJsonRpcCode(int _jsonRpcCode)
+    {
+        switch (_jsonRpcCode)
+        {
+            case -32700:
+                return MCPErrorCode::ParseError;
+            case -32600:
+                return MCPErrorCode::InvalidRequest;
+            case -32601:
+                return MCPErrorCode::MethodNotFound;
+            case -32602:
+                return MCPErrorCode::InvalidParams;
+            case -32603:
+                return MCPErrorCode::InternalError;
+            default:
+                return MCPErrorCode::InternalError; // Default to InternalError
+        }
+    }
+} 

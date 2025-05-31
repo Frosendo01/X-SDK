@@ -1,0 +1,46 @@
+/// <summary>
+/// Represents logging levels for Model Context Protocol operations.
+/// Corresponds to C# SDK LoggingLevel.cs
+/// </summary>
+public enum MCPLoggingLevel
+{
+    /// <summary>
+    /// Debug level - detailed information for diagnostics
+    /// </summary>
+    Debug = 0,
+    
+    /// <summary>
+    /// Info level - general information messages
+    /// </summary>
+    Info = 1,
+    
+    /// <summary>
+    /// Notice level - normal but significant condition
+    /// </summary>
+    Notice = 2,
+    
+    /// <summary>
+    /// Warning level - warning messages
+    /// </summary>
+    Warning = 3,
+    
+    /// <summary>
+    /// Error level - error conditions
+    /// </summary>
+    Error = 4,
+    
+    /// <summary>
+    /// Critical level - critical conditions
+    /// </summary>
+    Critical = 5,
+    
+    /// <summary>
+    /// Alert level - action must be taken immediately
+    /// </summary>
+    Alert = 6,
+    
+    /// <summary>
+    /// Emergency level - system is unusable
+    /// </summary>
+    Emergency = 7
+} 

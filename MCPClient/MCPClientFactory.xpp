@@ -1,0 +1,133 @@
+/// <summary>
+/// Factory class for creating and configuring MCP clients.
+/// Corresponds to C# SDK McpClientFactory.cs
+/// </summary>
+public final class MCPClientFactory
+{
+    /// <summary>
+    /// Creates a new MCP client with the specified server URL.
+    /// </summary>
+    /// <param name="_serverUrl">The URL of the MCP server</param>
+    /// <returns>A new MCPClient instance</returns>
+    public static MCPClient createClient(str _serverUrl)
+    {
+        if (!_serverUrl)
+        {
+            throw MCPException::createInvalidParams("Server URL cannot be empty");
+        }
+        
+        MCPClient client = new MCPClient(_serverUrl);
+        return client;
+    }
+
+    /// <summary>
+    /// Creates a new MCP client and initializes it.
+    /// </summary>
+    /// <param name="_serverUrl">The URL of the MCP server</param>
+    /// <returns>An initialized MCPClient instance</returns>
+    public static MCPClient createAndInitializeClient(str _serverUrl)
+    {
+        MCPClient client = MCPClientFactory::createClient(_serverUrl);
+        
+        if (!client.initialize())
+        {
+            throw MCPException::createInternalError("Failed to initialize MCP client");
+        }
+        
+        return client;
+    }
+
+    /// <summary>
+    /// Creates a new MCP client with authentication.
+    /// </summary>
+    /// <param name="_serverUrl">The URL of the MCP server</param>
+    /// <param name="_authToken">The authentication token</param>
+    /// <returns>A new MCPClient instance with authentication configured</returns>
+    public static MCPClient createClientWithAuth(str _serverUrl, str _authToken)
+    {
+        MCPClient client = MCPClientFactory::createClient(_serverUrl);
+        client.setAuthToken(_authToken);
+        return client;
+    }
+
+    /// <summary>
+    /// Creates a new MCP client with authentication and initializes it.
+    /// </summary>
+    /// <param name="_serverUrl">The URL of the MCP server</param>
+    /// <param name="_authToken">The authentication token</param>
+    /// <returns>An initialized MCPClient instance with authentication configured</returns>
+    public static MCPClient createAndInitializeClientWithAuth(str _serverUrl, str _authToken)
+    {
+        MCPClient client = MCPClientFactory::createClientWithAuth(_serverUrl, _authToken);
+        
+        if (!client.initialize())
+        {
+            throw MCPException::createInternalError("Failed to initialize authenticated MCP client");
+        }
+        
+        return client;
+    }
+
+    /// <summary>
+    /// Tests connectivity to an MCP server.
+    /// </summary>
+    /// <param name="_serverUrl">The URL of the MCP server</param>
+    /// <returns>True if the server is reachable</returns>
+    public static boolean testConnection(str _serverUrl)
+    {
+        try
+        {
+            MCPClient client = MCPClientFactory::createClient(_serverUrl);
+            return client.ping();
+        }
+        catch (Exception::Error)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Validates a server URL format.
+    /// </summary>
+    /// <param name="_serverUrl">The URL to validate</param>
+    /// <returns>True if the URL format is valid</returns>
+    public static boolean validateServerUrl(str _serverUrl)
+    {
+        if (!_serverUrl)
+        {
+            return false;
+        }
+        
+        // Basic URL validation
+        str lowerUrl = strLwr(_serverUrl);
+        return (strStartsWith(lowerUrl, "http://") || strStartsWith(lowerUrl, "https://"));
+    }
+
+    /// <summary>
+    /// Gets the default MCP server URL from system parameters.
+    /// This would typically read from a configuration table in D365.
+    /// </summary>
+    /// <returns>The default server URL or empty string if not configured</returns>
+    public static str getDefaultServerUrl()
+    {
+        // In a real implementation, this would read from a parameters table
+        // For now, return empty string
+        return "";
+    }
+
+    /// <summary>
+    /// Creates a client using the default server URL from system parameters.
+    /// </summary>
+    /// <returns>A new MCPClient instance using default configuration</returns>
+    public static MCPClient createDefaultClient()
+    {
+        str defaultUrl = MCPClientFactory::getDefaultServerUrl();
+        
+        if (!defaultUrl)
+        {
+            throw MCPException::createInvalidParams("No default MCP server URL configured. Please configure the system parameters.");
+        }
+        
+        return MCPClientFactory::createClient(defaultUrl);
+    }
+} 

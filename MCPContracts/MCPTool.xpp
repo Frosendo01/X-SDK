@@ -1,0 +1,93 @@
+/// <summary>
+/// Represents a tool that the server is capable of calling.
+/// Corresponds to C# SDK Tool.cs
+/// </summary>
+[DataContractAttribute]
+public class MCPTool
+{
+    private str name;
+    private str description;
+    private str inputSchema;
+    
+    /// <summary>
+    /// Initializes a new instance of the MCPTool class.
+    /// </summary>
+    public void new()
+    {
+        super();
+        this.inputSchema = '{"type":"object"}'; // Default minimal schema
+    }
+
+    /// <summary>
+    /// Gets or sets the name of the tool.
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmName(str _name = name)
+    {
+        name = _name;
+        return name;
+    }
+
+    /// <summary>
+    /// Gets or sets a human-readable description of the tool.
+    /// This description helps the AI model understand what the tool does and when to use it.
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmDescription(str _description = description)
+    {
+        description = _description;
+        return description;
+    }
+
+    /// <summary>
+    /// Gets or sets a JSON Schema string defining the expected parameters for the tool.
+    /// The schema must be a valid JSON Schema object with the "type" property set to "object".
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmInputSchema(str _inputSchema = inputSchema)
+    {
+        if (_inputSchema != inputSchema)
+        {
+            // Basic validation - ensure it's not empty and contains "object" type
+            if (_inputSchema && strScan(_inputSchema, '"type":"object"', 1, strLen(_inputSchema)) > 0)
+            {
+                inputSchema = _inputSchema;
+            }
+            else
+            {
+                throw error("The specified document is not a valid MCP tool JSON schema. Must contain 'type':'object'.");
+            }
+        }
+        return inputSchema;
+    }
+
+    /// <summary>
+    /// Creates a simple tool with basic parameters.
+    /// </summary>
+    /// <param name="_name">The tool name</param>
+    /// <param name="_description">The tool description</param>
+    /// <returns>A new MCPTool instance</returns>
+    public static MCPTool createSimpleTool(str _name, str _description)
+    {
+        MCPTool tool = new MCPTool();
+        tool.parmName(_name);
+        tool.parmDescription(_description);
+        return tool;
+    }
+
+    /// <summary>
+    /// Creates a tool with a custom JSON schema.
+    /// </summary>
+    /// <param name="_name">The tool name</param>
+    /// <param name="_description">The tool description</param>
+    /// <param name="_schema">The JSON schema string</param>
+    /// <returns>A new MCPTool instance</returns>
+    public static MCPTool createToolWithSchema(str _name, str _description, str _schema)
+    {
+        MCPTool tool = new MCPTool();
+        tool.parmName(_name);
+        tool.parmDescription(_description);
+        tool.parmInputSchema(_schema);
+        return tool;
+    }
+} 

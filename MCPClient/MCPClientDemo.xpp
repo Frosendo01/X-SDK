@@ -1,0 +1,204 @@
+/// <summary>
+/// Demo class showing how to use the MCP Client functionality.
+/// This class provides examples of common MCP operations.
+/// </summary>
+public final class MCPClientDemo
+{
+    /// <summary>
+    /// Demonstrates basic MCP client usage.
+    /// </summary>
+    /// <param name="_serverUrl">The MCP server URL to connect to</param>
+    public static void runBasicDemo(str _serverUrl = "https://localhost:3000")
+    {
+        MCPClient client;
+        
+        try
+        {
+            info("=== MCP Client Demo Starting ===");
+            
+            // Create and initialize client
+            info(strFmt("Connecting to MCP server: %1", _serverUrl));
+            client = MCPClientFactory::createAndInitializeClient(_serverUrl);
+            
+            // Test connectivity
+            if (client.ping())
+            {
+                info("✓ Server ping successful");
+            }
+            else
+            {
+                warning("⚠ Server ping failed");
+            }
+            
+            // List available tools
+            info("Retrieving available tools...");
+            container tools = client.listTools();
+            
+            if (conLen(tools) > 0)
+            {
+                info(strFmt("✓ Found %1 tools:", conLen(tools)));
+                
+                int i;
+                for (i = 1; i <= conLen(tools); i++)
+                {
+                    MCPTool tool = conPeek(tools, i);
+                    info(strFmt("  - %1: %2", tool.parmName(), tool.parmDescription()));
+                }
+                
+                // Try calling the first tool
+                MCPTool firstTool = conPeek(tools, 1);
+                MCPClientDemo::demonstrateToolCall(client, firstTool.parmName());
+            }
+            else
+            {
+                info("No tools found on the server");
+            }
+            
+            info("=== MCP Client Demo Completed ===");
+        }
+        catch (Exception::Error)
+        {
+            error(strFmt("Demo failed: %1", Exception::getLastError()));
+        }
+    }
+
+    /// <summary>
+    /// Demonstrates calling a tool with sample arguments.
+    /// </summary>
+    /// <param name="_client">The MCP client instance</param>
+    /// <param name="_toolName">The name of the tool to call</param>
+    public static void demonstrateToolCall(MCPClient _client, str _toolName)
+    {
+        try
+        {
+            info(strFmt("Calling tool: %1", _toolName));
+            
+            // Prepare sample arguments
+            container arguments = ["message", "Hello from D365!", "timestamp", DateTimeUtil::toStr(DateTimeUtil::getSystemDateTime())];
+            
+            // Call the tool
+            MCPContent result = _client.callTool(_toolName, arguments);
+            
+            if (result)
+            {
+                info(strFmt("✓ Tool call successful. Result type: %1", result.parmType()));
+                
+                if (result.parmType() == "text" && result.parmText())
+                {
+                    info(strFmt("  Response: %1", result.parmText()));
+                }
+            }
+            else
+            {
+                warning("Tool call returned no result");
+            }
+        }
+        catch (Exception::Error)
+        {
+            error(strFmt("Tool call failed: %1", Exception::getLastError()));
+        }
+    }
+
+    /// <summary>
+    /// Demonstrates error handling scenarios.
+    /// </summary>
+    public static void demonstrateErrorHandling()
+    {
+        info("=== Error Handling Demo ===");
+        
+        try
+        {
+            // Test with invalid URL
+            info("Testing with invalid server URL...");
+            MCPClient client = MCPClientFactory::createClient("invalid-url");
+            client.initialize(); // This should fail
+        }
+        catch (Exception::Error)
+        {
+            info("✓ Correctly caught invalid URL error");
+        }
+        
+        try
+        {
+            // Test with unreachable server
+            info("Testing with unreachable server...");
+            MCPClient client = MCPClientFactory::createClient("https://nonexistent-server.example.com");
+            client.initialize(); // This should fail
+        }
+        catch (Exception::Error)
+        {
+            info("✓ Correctly caught unreachable server error");
+        }
+        
+        info("=== Error Handling Demo Completed ===");
+    }
+
+    /// <summary>
+    /// Demonstrates authentication scenarios.
+    /// </summary>
+    /// <param name="_serverUrl">The MCP server URL</param>
+    /// <param name="_authToken">The authentication token</param>
+    public static void demonstrateAuthentication(str _serverUrl, str _authToken)
+    {
+        try
+        {
+            info("=== Authentication Demo ===");
+            info("Creating authenticated client...");
+            
+            MCPClient client = MCPClientFactory::createClientWithAuth(_serverUrl, _authToken);
+            
+            if (client.initialize())
+            {
+                info("✓ Authenticated client initialized successfully");
+                
+                // Test authenticated operations
+                container tools = client.listTools();
+                info(strFmt("✓ Retrieved %1 tools with authentication", conLen(tools)));
+            }
+            else
+            {
+                warning("Authentication failed");
+            }
+            
+            info("=== Authentication Demo Completed ===");
+        }
+        catch (Exception::Error)
+        {
+            error(strFmt("Authentication demo failed: %1", Exception::getLastError()));
+        }
+    }
+
+    /// <summary>
+    /// Runs a comprehensive test of all MCP client features.
+    /// </summary>
+    /// <param name="_serverUrl">The MCP server URL to test against</param>
+    public static void runComprehensiveTest(str _serverUrl = "https://localhost:3000")
+    {
+        info("=== Comprehensive MCP Client Test ===");
+        
+        // Test basic functionality
+        MCPClientDemo::runBasicDemo(_serverUrl);
+        
+        // Test error handling
+        MCPClientDemo::demonstrateErrorHandling();
+        
+        // Test URL validation
+        info("Testing URL validation...");
+        if (MCPClientFactory::validateServerUrl("https://valid-url.com"))
+        {
+            info("✓ Valid URL correctly validated");
+        }
+        
+        if (!MCPClientFactory::validateServerUrl("invalid-url"))
+        {
+            info("✓ Invalid URL correctly rejected");
+        }
+        
+        // Test connection testing
+        info("Testing connection test functionality...");
+        boolean canConnect = MCPClientFactory::testConnection(_serverUrl);
+        info(strFmt("Connection test result: %1", canConnect ? "Success" : "Failed"));
+        
+        info("=== Comprehensive Test Completed ===");
+    }
+} 

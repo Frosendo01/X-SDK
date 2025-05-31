@@ -1,0 +1,117 @@
+/// <summary>
+/// Represents a JSON-RPC response message in the Model Context Protocol.
+/// Corresponds to C# SDK JsonRpcResponse.cs
+/// </summary>
+[DataContractAttribute]
+public class MCPJsonRpcResponse
+{
+    private str jsonrpc;
+    private str id;
+    private str result;
+    private str errorMessage;
+    private int errorCode;
+    private boolean hasError;
+    
+    /// <summary>
+    /// Initializes a new instance of the MCPJsonRpcResponse class.
+    /// </summary>
+    public void new()
+    {
+        super();
+        this.jsonrpc = "2.0"; // JSON-RPC version
+        this.hasError = false;
+    }
+
+    /// <summary>
+    /// Gets or sets the JSON-RPC version. Should always be "2.0".
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmJsonrpc(str _jsonrpc = jsonrpc)
+    {
+        jsonrpc = _jsonrpc;
+        return jsonrpc;
+    }
+
+    /// <summary>
+    /// Gets or sets the request identifier that this response corresponds to.
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmId(str _id = id)
+    {
+        id = _id;
+        return id;
+    }
+
+    /// <summary>
+    /// Gets or sets the result of the method call as a JSON string.
+    /// This should be null if there was an error.
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmResult(str _result = result)
+    {
+        result = _result;
+        return result;
+    }
+
+    /// <summary>
+    /// Gets or sets the error message if the request failed.
+    /// </summary>
+    [DataMemberAttribute]
+    public str parmErrorMessage(str _errorMessage = errorMessage)
+    {
+        errorMessage = _errorMessage;
+        return errorMessage;
+    }
+
+    /// <summary>
+    /// Gets or sets the error code if the request failed.
+    /// </summary>
+    [DataMemberAttribute]
+    public int parmErrorCode(int _errorCode = errorCode)
+    {
+        errorCode = _errorCode;
+        return errorCode;
+    }
+
+    /// <summary>
+    /// Gets or sets whether this response represents an error.
+    /// </summary>
+    [DataMemberAttribute]
+    public boolean parmHasError(boolean _hasError = hasError)
+    {
+        hasError = _hasError;
+        return hasError;
+    }
+
+    /// <summary>
+    /// Creates a successful response.
+    /// </summary>
+    /// <param name="_id">The request ID</param>
+    /// <param name="_result">The result as JSON string</param>
+    /// <returns>A new MCPJsonRpcResponse instance</returns>
+    public static MCPJsonRpcResponse createSuccessResponse(str _id, str _result)
+    {
+        MCPJsonRpcResponse response = new MCPJsonRpcResponse();
+        response.parmId(_id);
+        response.parmResult(_result);
+        response.parmHasError(false);
+        return response;
+    }
+
+    /// <summary>
+    /// Creates an error response.
+    /// </summary>
+    /// <param name="_id">The request ID</param>
+    /// <param name="_errorCode">The error code</param>
+    /// <param name="_errorMessage">The error message</param>
+    /// <returns>A new MCPJsonRpcResponse instance</returns>
+    public static MCPJsonRpcResponse createErrorResponse(str _id, MCPErrorCode _errorCode, str _errorMessage)
+    {
+        MCPJsonRpcResponse response = new MCPJsonRpcResponse();
+        response.parmId(_id);
+        response.parmErrorCode(MCPErrorCodeHelper::toJsonRpcCode(_errorCode));
+        response.parmErrorMessage(_errorMessage);
+        response.parmHasError(true);
+        return response;
+    }
+} 

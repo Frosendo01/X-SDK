@@ -1,0 +1,36 @@
+/// <summary>
+/// Represents standard JSON-RPC error codes as defined in the MCP specification.
+/// Corresponds to C# SDK McpErrorCode.cs
+/// </summary>
+public enum MCPErrorCode
+{
+    /// <summary>
+    /// Indicates that the JSON received could not be parsed.
+    /// Value: -32700
+    /// </summary>
+    ParseError = 0,
+
+    /// <summary>
+    /// Indicates that the JSON payload does not conform to the expected Request object structure.
+    /// Value: -32600
+    /// </summary>
+    InvalidRequest = 1,
+
+    /// <summary>
+    /// Indicates that the requested method does not exist or is not available on the server.
+    /// Value: -32601
+    /// </summary>
+    MethodNotFound = 2,
+
+    /// <summary>
+    /// Indicates that one or more parameters provided in the request are invalid.
+    /// Value: -32602
+    /// </summary>
+    InvalidParams = 3,
+
+    /// <summary>
+    /// Indicates that an internal error occurred while processing the request.
+    /// Value: -32603
+    /// </summary>
+    InternalError = 4
+} 

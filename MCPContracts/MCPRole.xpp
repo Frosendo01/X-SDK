@@ -1,0 +1,16 @@
+/// <summary>
+/// Represents a role in Model Context Protocol communication.
+/// Corresponds to C# SDK Role.cs
+/// </summary>
+public enum MCPRole
+{
+    /// <summary>
+    /// User role - represents messages from the user/human
+    /// </summary>
+    User = 0,
+    
+    /// <summary>
+    /// Assistant role - represents messages from the AI assistant
+    /// </summary>
+    Assistant = 1
+} 
