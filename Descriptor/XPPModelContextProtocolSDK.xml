@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxModelInfo xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+  <AppliedUpdates xmlns:d2p1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+  <Customization>false</Customization>
+  <Description>X++ SDK for Model Context Protocol (MCP) - enables D365 Finance &amp; SCM integration with MCP servers and tools for AI and automation scenarios.</Description>
+  <DisplayName>X++ Model Context Protocol SDK</DisplayName>
+  <Id>2147483647</Id>
+  <InstallMode>Standard</InstallMode>
+  <Layer>usr</Layer>
+  <LayerId>16</LayerId>
+  <ModelModule>XPPModelContextProtocolSDK</ModelModule>
+  <Name>XPPModelContextProtocolSDK</Name>
+  <Publisher>Frosendo01</Publisher>
+  <VersionBuild>1</VersionBuild>
+  <VersionMajor>1</VersionMajor>
+  <VersionMinor>0</VersionMinor>
+  <VersionRevision>0</VersionRevision>
+</AxModelInfo> 

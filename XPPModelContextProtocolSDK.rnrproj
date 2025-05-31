@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <BuildTasksDirectory Condition=" '$(BuildTasksDirectory)' == ''">$(MSBuildProgramFiles32)\MSBuild\Microsoft\Dynamics\AX</BuildTasksDirectory>
+    <Model>XPPModelContextProtocolSDK</Model>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <OutputPath>bin</OutputPath>
+    <SchemaVersion>2.0</SchemaVersion>
+    <GenerateCrossReferences>True</GenerateCrossReferences>
+    <ProjectGuid>{12345678-1234-1234-1234-123456789012}</ProjectGuid>
+    <Name>XPPModelContextProtocolSDK</Name>
+    <RootNamespace>XPPModelContextProtocolSDK</RootNamespace>
+    <StartupType>Class</StartupType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <Configuration>Debug</Configuration>
+    <DBSyncInBuild>False</DBSyncInBuild>
+    <GenerateFormAdaptors>False</GenerateFormAdaptors>
+    <Company />
+    <Partition>initial</Partition>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DataEntityExpandParentChildRelations>False</DataEntityExpandParentChildRelations>
+    <DataEntityUseLabelTextAsFieldName>False</DataEntityUseLabelTextAsFieldName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <Configuration>Release</Configuration>
+    <DBSyncInBuild>False</DBSyncInBuild>
+    <GenerateFormAdaptors>False</GenerateFormAdaptors>
+    <Company />
+    <Partition>initial</Partition>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DataEntityExpandParentChildRelations>False</DataEntityExpandParentChildRelations>
+    <DataEntityUseLabelTextAsFieldName>False</DataEntityUseLabelTextAsFieldName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="MCPContracts\" />
+    <Folder Include="MCPClient\" />
+    <Folder Include="MCPServer\" />
+    <Folder Include="MCPExtensions\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="MCPContracts\MCPContent.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPContracts\MCPErrorCode.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPContracts\MCPErrorCodeHelper.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPContracts\MCPException.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPContracts\MCPJsonRpcRequest.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPContracts\MCPJsonRpcResponse.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPContracts\MCPLoggingLevel.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPContracts\MCPRole.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPContracts\MCPTool.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPClient\MCPClient.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPClient\MCPClientDemo.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPClient\MCPClientFactory.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPClient\MCPHttpClient.xpp">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="MCPClient\MCPJsonHelper.xpp">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.Common.targets" />
+  <Import Project="$(BuildTasksDirectory)\Microsoft.Dynamics.Framework.Tools.BuildTasks.targets" />
+</Project> 
